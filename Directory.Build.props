@@ -1,0 +1,42 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Authors>danny-may</Authors>
+    <Copyright>Copyright © Danny May</Copyright>
+    <NeutralLanguage>en-GB</NeutralLanguage>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <RepositoryUrl>https://github.com/titan-fx/TitanFx.DUnion</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/titan-fx/TitanFx.DUnion</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>inotifypropertychanged inotifypropertychanging propertychanged propertychanging sourcegenerator codegenerator codegen</PackageTags>
+    <Version>$(VersionPrefix)$(VersionSuffix)</Version>
+    <VersionPrefix>1.0.2</VersionPrefix>
+    <VersionSuffix>build-$([System.DateTime]::Now.ToString("yyyyMMddHHmmss"))</VersionSuffix>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <DebugType>embedded</DebugType>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)\artifacts</PackageOutputPath>
+    <IsPackable>False</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(IsPackable)">
+    <None
+      Condition="!Exists('$(ProjectDir)\README.md')"
+      Include="$(ProjectDir)\..\README.md"
+      Pack="true"
+      PackagePath="\"
+    />
+    <None
+      Condition="Exists('$(ProjectDir)\README.md')"
+      Include="$(ProjectDir)\README.md"
+      Pack="true"
+      PackagePath="\"
+    />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+</Project>
