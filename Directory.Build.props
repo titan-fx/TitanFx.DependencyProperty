@@ -22,6 +22,7 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageOutputPath>$(MSBuildThisFileDirectory)\artifacts</PackageOutputPath>
     <IsPackable>False</IsPackable>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
   <ItemGroup Condition="$(IsPackable)">
