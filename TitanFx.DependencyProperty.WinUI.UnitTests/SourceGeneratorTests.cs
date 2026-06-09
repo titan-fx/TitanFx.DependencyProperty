@@ -635,16 +635,31 @@ public class SourceGeneratorTests
             """
     )]
     [InlineData(
-        "CreateDefaultValueCallback",
+        "struct CreateDefaultValueCallback",
         """
             public partial class MyComponent
             {
                 [DependencyProperty(CreateDefaultValue = nameof(GetInitialId))]
                 public partial int Id { get; set; }
 
-                private int GetInitialId()
+                private static int GetInitialId()
                 {
                     return 0;
+                }
+            }
+            """
+    )]
+    [InlineData(
+        "class CreateDefaultValueCallback",
+        """
+            public partial class MyComponent
+            {
+                [DependencyProperty(CreateDefaultValue = nameof(GetInitialId))]
+                public partial string Id { get; set; }
+
+                private static string GetInitialId()
+                {
+                    return "ABC";
                 }
             }
             """
@@ -665,7 +680,7 @@ public class SourceGeneratorTests
         var settings = new VerifySettings();
         settings.UseParameters(name);
         settings.IgnoreGeneratedResult(x =>
-            x.HintName is "Microsoft.CodeAnalysis.EmbeddedAttribute.cs" or "Attributes.g.cs"
+            x.HintName is "Microsoft.CodeAnalysis.EmbeddedAttribute.cs" or "Util.g.cs"
         );
         _ = await Verify(result, settings);
     }

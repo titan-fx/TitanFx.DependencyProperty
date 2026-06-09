@@ -27,7 +27,7 @@ partial class MyComponent
 			typeof(string),
 			typeof(MyComponent),
 			new PropertyMetadata(
-				defaultValue: "This is a default value"
+				defaultValue: "This is a default valu1e"
 			)
 		);
 

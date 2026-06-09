@@ -9,6 +9,6 @@ internal record DependencyPropertyInfo
     public required Modifiers Modifiers { get; init; }
     public required string PropertyType { get; init; }
     public required string InitialValue { get; init; }
-    public required string? CreateDefaultValue { get; init; }
+    public required CreateDefaultValueInfo? CreateDefaultValue { get; init; }
     public required OnValueChangedInfo? OnValueChanged { get; init; }
 }

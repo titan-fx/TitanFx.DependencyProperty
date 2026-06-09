@@ -8,7 +8,7 @@ public sealed class SourceGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        AttributeGenerator.Emit(context);
+        UtilGenerator.Emit(context);
         var dependencyObjects = DependencyObjectInfo.Capture(context);
 
         DependencyPropertyGenerator.Emit(context, dependencyObjects);

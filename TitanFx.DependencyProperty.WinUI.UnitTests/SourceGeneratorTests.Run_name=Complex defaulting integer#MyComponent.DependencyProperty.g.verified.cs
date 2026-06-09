@@ -3,6 +3,7 @@
 #nullable enable
 partial class MyComponent
 {
+    #region Id
     public static readonly global::Microsoft.UI.Xaml.DependencyProperty IdProperty
         = global::Microsoft.UI.Xaml.DependencyProperty.Register(
             "Id",
@@ -16,4 +17,5 @@ partial class MyComponent
         get => (int)GetValue(IdProperty);
         set => SetValue(IdProperty, value); 
     }
+    #endregion Id
 }

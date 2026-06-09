@@ -3,6 +3,7 @@
 #nullable enable
 partial class MyComponent
 {
+    #region Content
     public static readonly global::Microsoft.UI.Xaml.DependencyProperty ContentProperty
         = global::Microsoft.UI.Xaml.DependencyProperty.Register(
             "Content",
@@ -16,6 +17,8 @@ partial class MyComponent
         get => (global::Microsoft.UI.Xaml.FrameworkElement)GetValue(ContentProperty);
         set => SetValue(ContentProperty, value); 
     }
+    #endregion Content
+    #region Id
     public static readonly global::Microsoft.UI.Xaml.DependencyProperty IdProperty
         = global::Microsoft.UI.Xaml.DependencyProperty.Register(
             "Id",
@@ -29,6 +32,8 @@ partial class MyComponent
         get => (int)GetValue(IdProperty);
         set => SetValue(IdProperty, value); 
     }
+    #endregion Id
+    #region Source
     public static readonly global::Microsoft.UI.Xaml.DependencyProperty SourceProperty
         = global::Microsoft.UI.Xaml.DependencyProperty.Register(
             "Source",
@@ -42,4 +47,5 @@ partial class MyComponent
         get => (string)GetValue(SourceProperty);
         set => SetValue(SourceProperty, value); 
     }
+    #endregion Source
 }

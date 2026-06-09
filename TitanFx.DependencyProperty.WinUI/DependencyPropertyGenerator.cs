@@ -47,8 +47,10 @@ internal static class DependencyPropertyGenerator
 
         foreach (var property in source.Properties)
         {
+            output.WriteLine($"#region {property.Name}");
             WriteDependencyProperty(output, source.Type, property);
             WriteInstanceProperty("", output, property);
+            output.WriteLine($"#endregion {property.Name}");
         }
 
         foreach (var _ in source.Path)
@@ -127,7 +129,11 @@ internal static class DependencyPropertyGenerator
         {
             output.WriteLine($"{Types.PropertyMetadata}.Create(");
             output.Indent++;
-            output.Write($"createDefaultValueCallback: {ownerType}.{property.CreateDefaultValue}");
+            output.Write("createDefaultValueCallback: ");
+            if (property.CreateDefaultValue.ReturnsValueType)
+                output.Write($"static () => {ownerType}.{property.CreateDefaultValue.Name}()");
+            else
+                output.Write($"{ownerType}.{property.CreateDefaultValue.Name}");
         }
 
         if (

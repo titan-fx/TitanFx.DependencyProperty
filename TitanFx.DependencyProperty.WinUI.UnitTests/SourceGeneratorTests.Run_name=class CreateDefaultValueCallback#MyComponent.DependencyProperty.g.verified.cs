@@ -7,13 +7,14 @@ partial class MyComponent
     public static readonly global::Microsoft.UI.Xaml.DependencyProperty IdProperty
         = global::Microsoft.UI.Xaml.DependencyProperty.Register(
             "Id",
-            typeof(int),
+            typeof(string),
             typeof(global::MyComponent),
-            new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(int)
+            global::Microsoft.UI.Xaml.PropertyMetadata.Create(
+                createDefaultValueCallback: global::MyComponent.GetInitialId
             )
         );
-    public partial int Id {
+    public partial string Id {
+        get => (string)GetValue(IdProperty);
         set => SetValue(IdProperty, value); 
     }
     #endregion Id

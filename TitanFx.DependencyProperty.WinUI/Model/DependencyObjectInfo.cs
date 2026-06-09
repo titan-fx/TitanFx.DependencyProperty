@@ -66,12 +66,12 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                         .SelectMany(static a => a.NamedArguments)
                         .ToLookup(static a => a.Key, static a => a.Value);
 
-                    var onValueChangedName = namedArguments[OnValueChanged]
+                    var onValueChanged = namedArguments[OnValueChanged]
                         .Where(static x => x.Kind is TypedConstantKind.Primitive)
                         .Select(static x => x.Value)
                         .OfType<string>()
                         .FirstOrDefault();
-                    var createDefaultValueFn = namedArguments[CreateDefaultValue]
+                    var createDefaultValue = namedArguments[CreateDefaultValue]
                         .Where(static x => x.Kind is TypedConstantKind.Primitive)
                         .Select(static x => x.Value)
                         .OfType<string>()
@@ -91,14 +91,16 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                             null => $"default({propertyType})",
                             var v => $"({propertyType})({node.Initializer.Value})",
                         },
-                        CreateDefaultValue = createDefaultValueFn,
-                        Nullable = property.NullableAnnotation is NullableAnnotation.Annotated,
-                        OnValueChanged = onValueChangedName is null
+                        CreateDefaultValue = createDefaultValue is null
                             ? null
-                            : OnValueChangedInfo.Capture(
+                            : CreateDefaultValueInfo.Capture(
                                 property.ContainingType,
-                                onValueChangedName
+                                createDefaultValue
                             ),
+                        Nullable = property.NullableAnnotation is NullableAnnotation.Annotated,
+                        OnValueChanged = onValueChanged is null
+                            ? null
+                            : OnValueChangedInfo.Capture(property.ContainingType, onValueChanged),
                     };
                 }
             )
