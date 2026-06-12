@@ -19,7 +19,7 @@ public partial class MyComponent : DependencyObject
 ```
 
 Rough output:
-```
+```csharp
 partial class MyComponent
 {
 	public static readonly DependencyProperty BlurProperty
