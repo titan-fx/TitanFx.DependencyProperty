@@ -10,7 +10,7 @@ partial class MyComponent
             typeof(bool),
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: typeof(bool),
+                defaultValue: default(bool),
                 propertyChangedCallback: static (sender, eventArgs) => 
                 {
                     // TODO: Implement one of the following signatures:

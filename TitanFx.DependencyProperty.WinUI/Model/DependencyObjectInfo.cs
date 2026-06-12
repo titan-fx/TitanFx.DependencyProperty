@@ -198,7 +198,7 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                                         TargetType = tTarget.ToDisplayString(
                                             SymbolDisplayFormat.FullyQualifiedFormat
                                         ),
-                                        InitialValue = $"typeof({propertyType})",
+                                        InitialValue = $"default({propertyType})",
                                         PropertyType = propertyType,
                                         CreateDefaultValue = CreateDefaultValueInfo.Capture(
                                             owner,
