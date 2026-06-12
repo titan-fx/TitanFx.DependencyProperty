@@ -6,6 +6,7 @@ namespace TitanFx.DependencyProperty.WinUI.Model;
 
 internal record RootTypeInfo
 {
+    public required Accessibility Visibility { get; init; }
     public required string? Namespace { get; init; }
     public required ValueArray<TypeLocalInfo> Path { get; init; }
 
@@ -13,6 +14,7 @@ internal record RootTypeInfo
     {
         return new()
         {
+            Visibility = type.DeclaredAccessibility,
             Namespace = type.ContainingNamespace is { IsGlobalNamespace: false } ns
                 ? ns.ToDisplayString()
                 : null,

@@ -122,39 +122,58 @@ internal static class DependencyPropertyGenerator
 
         if (source.AttachedProperties.Count > 0)
         {
-            var extensionClass = new StringBuilder();
-            foreach (var type in source.Path)
-            {
-                _ = extensionClass.Append($"{type.Name}_");
-            }
+            WriteAttachedExtensionMethods(source, output);
+        }
 
-            output.WriteLine($"static partial class {extensionClass}Extensions");
-            using (Util.WriteBlock(output))
+        return result.ToString();
+    }
+
+    private static void WriteAttachedExtensionMethods(
+        DependencyObjectInfo source,
+        IndentedTextWriter output
+    )
+    {
+        var extensionClass = new StringBuilder();
+        foreach (var type in source.Path)
+        {
+            _ = extensionClass.Append($"{type.Name}_");
+        }
+
+        output.Write(
+            source.Visibility switch
             {
-                foreach (var group in source.AttachedProperties.GroupBy(static x => x.TargetType))
+                Accessibility.Private => "private ",
+                Accessibility.ProtectedAndInternal => "private protected ",
+                Accessibility.Protected => "protected ",
+                Accessibility.Internal => "internal ",
+                Accessibility.ProtectedOrInternal => "protected internal ",
+                Accessibility.Public => "public ",
+                _ => "",
+            }
+        );
+
+        output.WriteLine($"static partial class {extensionClass}Extensions");
+        using (Util.WriteBlock(output))
+        {
+            foreach (var group in source.AttachedProperties.GroupBy(static x => x.TargetType))
+            {
+                output.WriteLine($"extension({group.Key} target)");
+                using (Util.WriteBlock(output))
                 {
-                    output.WriteLine($"extension({group.Key} target)");
-                    using (Util.WriteBlock(output))
+                    foreach (var property in group)
                     {
-                        foreach (var property in group)
+                        output.WriteLine($"public {property.PropertyType} {property.Name}");
+                        using (Util.WriteBlock(output))
                         {
-                            output.WriteLine($"public {property.PropertyType} {property.Name}");
-                            using (Util.WriteBlock(output))
-                            {
-                                output.WriteLine(
-                                    $"get => {source.Type}.Get{property.Name}(target);"
-                                );
-                                output.WriteLine(
-                                    $"set => {source.Type}.Set{property.Name}(target, value);"
-                                );
-                            }
+                            output.WriteLine($"get => {source.Type}.Get{property.Name}(target);");
+                            output.WriteLine(
+                                $"set => {source.Type}.Set{property.Name}(target, value);"
+                            );
                         }
                     }
                 }
             }
         }
-
-        return result.ToString();
     }
 
     private static void WriteOnValueChangedPotentialSignatures(

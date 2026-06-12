@@ -36,6 +36,7 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                         .Select(static x => new DependencyObjectInfo
                         {
                             Type = FullyQualify(x.owner),
+                            Visibility = x.owner.Visibility,
                             Path = x.owner.Path,
                             Namespace = x.owner.Namespace,
                             Properties = new(x.direct),

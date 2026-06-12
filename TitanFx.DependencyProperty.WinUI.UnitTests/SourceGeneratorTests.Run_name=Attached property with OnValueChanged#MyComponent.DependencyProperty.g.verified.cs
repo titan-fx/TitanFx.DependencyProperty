@@ -31,7 +31,7 @@ partial class MyComponent
     }
     #endregion IsSuccess
 }
-static partial class MyComponent_Extensions
+public static partial class MyComponent_Extensions
 {
     extension(global::Microsoft.UI.Xaml.FrameworkElement target)
     {

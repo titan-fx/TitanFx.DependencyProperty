@@ -45,7 +45,7 @@ partial class MyComponent
     static partial void HandleIsSuccessChanged(global::Microsoft.UI.Xaml.FrameworkElement target);
     #endregion IsSuccess
 }
-static partial class MyComponent_Extensions
+public static partial class MyComponent_Extensions
 {
     extension(global::Microsoft.UI.Xaml.FrameworkElement target)
     {
