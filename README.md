@@ -10,7 +10,7 @@ Source:
 ```csharp
 using TitanFx.DependencyProperty.WinUI;
 
-[AttachedProperty<Image, bool>("Blur")]
+[AttachedDependencyProperty<Image, bool>("Blur")]
 public partial class MyComponent : DependencyObject
 {
 	[DependencyProperty]
