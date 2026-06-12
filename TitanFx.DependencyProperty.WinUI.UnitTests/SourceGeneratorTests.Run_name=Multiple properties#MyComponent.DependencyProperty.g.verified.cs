@@ -13,7 +13,8 @@ partial class MyComponent
                 defaultValue: default(global::Microsoft.UI.Xaml.FrameworkElement)
             )
         );
-    public partial global::Microsoft.UI.Xaml.FrameworkElement Content {
+    public partial global::Microsoft.UI.Xaml.FrameworkElement Content 
+    {
         get => (global::Microsoft.UI.Xaml.FrameworkElement)GetValue(ContentProperty);
         set => SetValue(ContentProperty, value); 
     }
@@ -28,7 +29,8 @@ partial class MyComponent
                 defaultValue: (int)(123)
             )
         );
-    public partial int Id {
+    public partial int Id 
+    {
         get => (int)GetValue(IdProperty);
         set => SetValue(IdProperty, value); 
     }
@@ -43,7 +45,8 @@ partial class MyComponent
                 defaultValue: (string)("https://test.invalid/")
             )
         );
-    public partial string Source {
+    public partial string Source 
+    {
         get => (string)GetValue(SourceProperty);
         set => SetValue(SourceProperty, value); 
     }

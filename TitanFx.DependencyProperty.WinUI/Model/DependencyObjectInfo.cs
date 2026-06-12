@@ -12,10 +12,42 @@ internal partial record DependencyObjectInfo : RootTypeInfo
 {
     public required string Type { get; init; }
     public required ValueArray<DependencyPropertyInfo> Properties { get; init; }
+    public required ValueArray<AttachedDependencyPropertyInfo> AttachedProperties { get; init; }
 
     public static IncrementalValuesProvider<DependencyObjectInfo> Capture(
         IncrementalGeneratorInitializationContext context
     )
+    {
+        var dependencyProperties = CaptureDependencyProperties(context).Collect();
+        var attachedProperties = CaptureAttachedDependencyProperties(context).Collect();
+
+        return dependencyProperties
+            .Combine(attachedProperties)
+            .SelectMany(
+                static (x, _) =>
+                {
+                    var direct = x.Left.ToLookup(static v => v.Owner, static v => v.Value);
+                    var attached = x.Right.ToLookup(static v => v.Owner, static v => v.Value);
+                    var keys = Enumerable.Union(
+                        direct.Select(static v => v.Key),
+                        attached.Select(static v => v.Key)
+                    );
+                    return keys.Select(k => (owner: k, direct: direct[k], attached: attached[k]))
+                        .Select(static x => new DependencyObjectInfo
+                        {
+                            Type = FullyQualify(x.owner),
+                            Path = x.owner.Path,
+                            Namespace = x.owner.Namespace,
+                            Properties = new(x.direct),
+                            AttachedProperties = new(x.attached),
+                        });
+                }
+            );
+    }
+
+    private static IncrementalValuesProvider<
+        WithOwner<DependencyPropertyInfo>
+    > CaptureDependencyProperties(IncrementalGeneratorInitializationContext context)
     {
         return context
             .SyntaxProvider.ForAttributeWithMetadataName(
@@ -32,7 +64,7 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                         ctx.TargetSymbol is not IPropertySymbol { IsStatic: false } property
                         || ctx.TargetNode is not PropertyDeclarationSyntax node
                     )
-                        return null;
+                        return null!;
                     var propertyType = property.Type.ToDisplayString(
                         SymbolDisplayFormat.FullyQualifiedFormat
                     );
@@ -41,29 +73,8 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                         .OfType<PropertyDeclarationSyntax>()
                         .ToList();
 
-                    var namedArguments = property
-                        .GetAttributes()
-                        .Where(static a =>
-                            a.AttributeClass
-                                is {
-                                    Name: DependencyPropertyAttribute,
-                                    ContainingType: null,
-                                    ContainingNamespace:
-                                    {
-                                        Name: Constants.WinUI,
-                                        ContainingNamespace:
-                                        {
-                                            Name: Constants.DependencyProperty,
-                                            ContainingNamespace:
-                                            {
-                                                Name: Constants.TitanFx,
-                                                ContainingNamespace.IsGlobalNamespace: true
-                                            }
-                                        }
-                                    }
-                                }
-                        )
-                        .SelectMany(static a => a.NamedArguments)
+                    var namedArguments = ctx
+                        .Attributes.SelectMany(static a => a.NamedArguments)
                         .ToLookup(static a => a.Key, static a => a.Value);
 
                     var onValueChanged = namedArguments[OnValueChanged]
@@ -77,63 +88,134 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                         .OfType<string>()
                         .FirstOrDefault();
 
-                    return new
+                    return new WithOwner<DependencyPropertyInfo>
                     {
-                        Parent = Capture(property.ContainingType),
-                        property.Name,
-                        SetterModifiers = GetModifiers(syntax, SyntaxKind.SetAccessorDeclaration),
-                        InitModifiers = GetModifiers(syntax, SyntaxKind.InitAccessorDeclaration),
-                        GetterModifiers = GetModifiers(syntax, SyntaxKind.GetAccessorDeclaration),
-                        Modifiers = GetModifiers(syntax),
-                        PropertyType = propertyType,
-                        InitialValue = node.Initializer switch
+                        Owner = Capture(property.ContainingType),
+                        Value = new()
                         {
-                            null => $"default({propertyType})",
-                            var v => $"({propertyType})({node.Initializer.Value})",
-                        },
-                        CreateDefaultValue = createDefaultValue is null
-                            ? null
-                            : CreateDefaultValueInfo.Capture(
+                            Name = property.Name,
+                            SetterModifiers = GetModifiers(
+                                syntax,
+                                SyntaxKind.SetAccessorDeclaration
+                            ),
+                            InitModifiers = GetModifiers(
+                                syntax,
+                                SyntaxKind.InitAccessorDeclaration
+                            ),
+                            GetterModifiers = GetModifiers(
+                                syntax,
+                                SyntaxKind.GetAccessorDeclaration
+                            ),
+                            Modifiers = GetModifiers(syntax),
+                            PropertyType = propertyType,
+                            InitialValue = node.Initializer switch
+                            {
+                                null => $"default({propertyType})",
+                                var v => $"({propertyType})({node.Initializer.Value})",
+                            },
+                            CreateDefaultValue = CreateDefaultValueInfo.Capture(
                                 property.ContainingType,
                                 createDefaultValue
                             ),
-                        Nullable = property.NullableAnnotation is NullableAnnotation.Annotated,
-                        OnValueChanged = onValueChanged is null
-                            ? null
-                            : OnValueChangedInfo.Capture(property.ContainingType, onValueChanged),
+                            OnValueChanged = OnValueChangedInfo.Capture(
+                                property.ContainingType,
+                                onValueChanged,
+                                staticOnly: false
+                            ),
+                        },
                     };
                 }
             )
-            .Where(static x => x is not null)
-            .Select(static (x, _) => x!)
-            .Collect()
-            .SelectMany(
-                static (x, _) =>
-                    x.GroupBy(
-                        static v => v.Parent,
-                        static (parent, properties) =>
-                            new DependencyObjectInfo
-                            {
-                                Type = FullyQualify(parent),
-                                Path = parent.Path,
-                                Namespace = parent.Namespace,
-                                Properties = new(
-                                    properties.Select(static p => new DependencyPropertyInfo
-                                    {
-                                        Name = p.Name,
-                                        SetterModifiers = p.SetterModifiers,
-                                        InitModifiers = p.InitModifiers,
-                                        GetterModifiers = p.GetterModifiers,
-                                        Modifiers = p.Modifiers,
-                                        InitialValue = p.InitialValue,
-                                        CreateDefaultValue = p.CreateDefaultValue,
-                                        PropertyType = p.PropertyType,
-                                        OnValueChanged = p.OnValueChanged,
-                                    })
-                                ),
-                            }
+            .Where(static x => x is not null);
+    }
+
+    private static IncrementalValuesProvider<
+        WithOwner<AttachedDependencyPropertyInfo>
+    > CaptureAttachedDependencyProperties(IncrementalGeneratorInitializationContext context)
+    {
+        return context
+            .SyntaxProvider.ForAttributeWithMetadataName(
+                $"{Constants.Namespace}.{AttachedDependencyPropertyAttribute}`2",
+                static (node, _) =>
+                    node
+                        is ClassDeclarationSyntax
+                            or StructDeclarationSyntax
+                            or RecordDeclarationSyntax,
+                static (ctx, token) =>
+                {
+                    if (
+                        ctx.TargetSymbol is not INamedTypeSymbol owner
+                        || ctx.TargetNode is not TypeDeclarationSyntax node
                     )
-            );
+                        return null!;
+
+                    var ownerInfo = Capture(owner);
+                    return new ValueArray<WithOwner<AttachedDependencyPropertyInfo>>(
+                        ctx.Attributes.Select(a =>
+                            {
+                                if (
+                                    a
+                                    is not {
+                                        ConstructorArguments: [
+                                            {
+                                                Kind: TypedConstantKind.Primitive,
+                                                Value: string name
+                                            },
+                                        ],
+                                        AttributeClass.TypeArguments: [var tTarget, var tValue]
+                                    }
+                                )
+                                {
+                                    return null!;
+                                }
+
+                                var namedArguments = a.NamedArguments.ToLookup(
+                                    static a => a.Key,
+                                    static a => a.Value
+                                );
+
+                                var onValueChanged = namedArguments[OnValueChanged]
+                                    .Where(static x => x.Kind is TypedConstantKind.Primitive)
+                                    .Select(static x => x.Value)
+                                    .OfType<string>()
+                                    .FirstOrDefault();
+                                var createDefaultValue = namedArguments[CreateDefaultValue]
+                                    .Where(static x => x.Kind is TypedConstantKind.Primitive)
+                                    .Select(static x => x.Value)
+                                    .OfType<string>()
+                                    .FirstOrDefault();
+                                var propertyType = tValue.ToDisplayString(
+                                    SymbolDisplayFormat.FullyQualifiedFormat
+                                );
+
+                                return new WithOwner<AttachedDependencyPropertyInfo>
+                                {
+                                    Owner = ownerInfo,
+                                    Value = new()
+                                    {
+                                        Name = name,
+                                        TargetType = tTarget.ToDisplayString(
+                                            SymbolDisplayFormat.FullyQualifiedFormat
+                                        ),
+                                        InitialValue = $"typeof({propertyType})",
+                                        PropertyType = propertyType,
+                                        CreateDefaultValue = CreateDefaultValueInfo.Capture(
+                                            owner,
+                                            createDefaultValue
+                                        ),
+                                        OnValueChanged = OnValueChangedInfo.Capture(
+                                            owner,
+                                            onValueChanged,
+                                            staticOnly: true
+                                        ),
+                                    },
+                                };
+                            })
+                            .Where(static x => x is not null)
+                    );
+                }
+            )
+            .SelectMany(static (x, _) => x);
     }
 
     private static string FullyQualify(RootTypeInfo type)
@@ -197,6 +279,12 @@ internal partial record DependencyObjectInfo : RootTypeInfo
         }
 
         return new() { Accessibility = accessibility, Other = new(other) };
+    }
+
+    private sealed record WithOwner<T>
+    {
+        public required RootTypeInfo Owner { get; init; }
+        public required T Value { get; init; }
     }
 }
 

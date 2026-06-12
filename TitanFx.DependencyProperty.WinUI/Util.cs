@@ -5,20 +5,39 @@ namespace TitanFx.DependencyProperty.WinUI;
 
 internal static class Util
 {
-    public static IDisposable WriteBlock(IndentedTextWriter writer)
+    public static IDisposable WriteBlock(
+        IndentedTextWriter writer,
+        string open = "{",
+        string close = "}"
+    )
     {
-        writer.WriteLine("{");
+        writer.WriteLine(open);
         writer.Indent++;
 
-        return new CloseBlock(writer);
+        return new WriteBlockHandle(writer, close);
     }
 
-    private sealed class CloseBlock(IndentedTextWriter writer) : IDisposable
+    public static IDisposable Indent(IndentedTextWriter writer)
+    {
+        writer.Indent++;
+
+        return new IndentHandle(writer);
+    }
+
+    private sealed class WriteBlockHandle(IndentedTextWriter writer, string close) : IDisposable
     {
         public void Dispose()
         {
             writer.Indent--;
-            writer.WriteLine("}");
+            writer.WriteLine(close);
+        }
+    }
+
+    private sealed class IndentHandle(IndentedTextWriter writer) : IDisposable
+    {
+        public void Dispose()
+        {
+            writer.Indent--;
         }
     }
 }

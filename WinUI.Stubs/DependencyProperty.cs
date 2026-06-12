@@ -11,4 +11,14 @@ public sealed class DependencyProperty
     {
         return new();
     }
+
+    public static DependencyProperty RegisterAttached(
+        string name,
+        Type valueType,
+        Type ownerType,
+        PropertyMetadata metadata
+    )
+    {
+        return new();
+    }
 }

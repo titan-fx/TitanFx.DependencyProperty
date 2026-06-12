@@ -10,6 +10,7 @@ Source:
 ```csharp
 using TitanFx.DependencyProperty.WinUI;
 
+[AttachedProperty<Image, bool>("Blur")]
 public partial class MyComponent : DependencyObject
 {
 	[DependencyProperty]
@@ -21,6 +22,26 @@ Rough output:
 ```
 partial class MyComponent
 {
+	public static readonly DependencyProperty BlurProperty
+		= DependencyProperty.RegisterAttached(
+			"Blur",
+			typeof(bool),
+			typeof(MyComponent),
+			new PropertyMetadata(
+				defaultValue: default(bool)
+			)
+		);
+
+	public static partial bool GetBlur(Image target)
+	{
+		return (bool)target.GetValue(BlurProperty);
+	}
+
+	public static partial void SetBlur(Image target, bool value)
+	{
+		target.SetValue(BlurProperty, value);
+	}
+
 	public static readonly DependencyProperty TextProperty
 		= DependencyProperty.Register(
 			"Text",
@@ -37,6 +58,15 @@ partial class MyComponent
 		set => SetValue(TextProperty, value);
 	}
 }
+
+static partial class MyComponentExtensions
+{
+	extension(Image target)
+	{
+		get => MyComponent.GetBlur(target);
+		set => MyComponent.SetBlur(target, value);
+	}
+}
 ```
 
 ### Default values
@@ -47,6 +77,8 @@ Anything you assign to the property as part of the property initializer will be 
 Because the registration is static, this means if you attempt to use a primary constructor value to initialize a dependency property it will fail.
 
 If you dont add an initializer to your property then the default value will be set to `default(MyPropertyType)`.
+
+For `[AttachedDependencyProperty<TTarget,TValue>]` calls, the only way to set a default value is via the [CreateDefaultValue](#CreateDefaultValue) property.
 
 ### PropertyChangedCallback
 

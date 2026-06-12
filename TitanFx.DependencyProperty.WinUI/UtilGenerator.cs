@@ -29,6 +29,21 @@ internal static class UtilGenerator
                 public {{Types.String}}? {{CreateDefaultValue}} { get; set; }
                 public {{Types.String}}? {{OnValueChanged}} { get; set; }
             }
+
+            [{{Types.EmbeddedAttribute}}]
+            [{{Types.AttributeUsageAttribute}}({{Types.AttributeTargets}}.Class | {{Types.AttributeTargets}}.Struct, AllowMultiple = true, Inherited = false)]
+            internal sealed partial class {{AttachedDependencyPropertyAttribute}}<TTarget, TValue> : {{Types.Attribute}}
+                where TTarget : {{Types.DependencyObject}}
+            {
+                public {{Types.String}} Name { get; }
+                public {{Types.String}}? {{CreateDefaultValue}} { get; set; }
+                public {{Types.String}}? {{OnValueChanged}} { get; set; }
+
+                public {{AttachedDependencyPropertyAttribute}}(string name)
+                {
+                    Name = name;
+                }
+            }
             """
         );
     }

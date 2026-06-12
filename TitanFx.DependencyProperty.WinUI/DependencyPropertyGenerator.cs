@@ -1,5 +1,7 @@
 ﻿using System.CodeDom.Compiler;
 using System.IO;
+using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using TitanFx.DependencyProperty.WinUI.Model;
@@ -45,11 +47,70 @@ internal static class DependencyPropertyGenerator
             output.Indent++;
         }
 
+        var staticOnly = true;
+        foreach (var property in source.AttachedProperties)
+        {
+            output.WriteLine($"#region {property.Name}");
+            WriteDependencyProperty(
+                output,
+                "RegisterAttached",
+                source.Type,
+                property.TargetType,
+                property,
+                staticOnly
+            );
+            WriteAttachedGetter(output, source.Type, property);
+            WriteAttachedSetter(output, source.Type, property);
+            if (
+                property.OnValueChanged is
+                {
+                    Signature: OnValueChangedSignature.NotFound
+                        or OnValueChangedSignature.Unsupported,
+                    MethodName: var onValueChanged
+                }
+            )
+            {
+                WriteOnValueChangedPotentialSignatures(
+                    output,
+                    property.TargetType,
+                    property,
+                    onValueChanged,
+                    staticOnly
+                );
+            }
+            output.WriteLine($"#endregion {property.Name}");
+        }
+
+        staticOnly = false;
         foreach (var property in source.Properties)
         {
             output.WriteLine($"#region {property.Name}");
-            WriteDependencyProperty(output, source.Type, property);
-            WriteInstanceProperty("", output, property);
+            WriteDependencyProperty(
+                output,
+                "Register",
+                source.Type,
+                source.Type,
+                property,
+                staticOnly
+            );
+            WriteInstanceProperty(output, property);
+            if (
+                property.OnValueChanged is
+                {
+                    Signature: OnValueChangedSignature.NotFound
+                        or OnValueChangedSignature.Unsupported,
+                    MethodName: var onValueChanged
+                }
+            )
+            {
+                WriteOnValueChangedPotentialSignatures(
+                    output,
+                    source.Type,
+                    property,
+                    onValueChanged,
+                    staticOnly
+                );
+            }
             output.WriteLine($"#endregion {property.Name}");
         }
 
@@ -59,150 +120,333 @@ internal static class DependencyPropertyGenerator
             output.WriteLine("}");
         }
 
+        if (source.AttachedProperties.Count > 0)
+        {
+            var extensionClass = new StringBuilder();
+            foreach (var type in source.Path)
+            {
+                _ = extensionClass.Append($"{type.Name}_");
+            }
+
+            output.WriteLine($"static partial class {extensionClass}Extensions");
+            using (Util.WriteBlock(output))
+            {
+                foreach (var group in source.AttachedProperties.GroupBy(static x => x.TargetType))
+                {
+                    output.WriteLine($"extension({group.Key} target)");
+                    using (Util.WriteBlock(output))
+                    {
+                        foreach (var property in group)
+                        {
+                            output.WriteLine($"public {property.PropertyType} {property.Name}");
+                            using (Util.WriteBlock(output))
+                            {
+                                output.WriteLine(
+                                    $"get => {source.Type}.Get{property.Name}(target);"
+                                );
+                                output.WriteLine(
+                                    $"set => {source.Type}.Set{property.Name}(target, value);"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return result.ToString();
     }
 
+    private static void WriteOnValueChangedPotentialSignatures(
+        IndentedTextWriter output,
+        string targetType,
+        DependencyPropertyInfoBase property,
+        string methodName,
+        bool staticOnly
+    )
+    {
+        output.WriteLine(
+            $"static partial void {methodName}({Types.DependencyObject} target, {Types.DependencyPropertyChangedEventArgs} e);"
+        );
+        output.WriteLine(
+            $"static partial void {methodName}({targetType} target, {Types.DependencyPropertyChangedEventArgs} e);"
+        );
+        if (!staticOnly)
+        {
+            output.WriteLine(
+                $"partial void {methodName}({Types.DependencyPropertyChangedEventArgs} e);"
+            );
+        }
+        output.WriteLine(
+            $"static partial void {methodName}({Types.DependencyObject} target, {property.PropertyType} newValue, {property.PropertyType} oldValue);"
+        );
+        output.WriteLine(
+            $"static partial void {methodName}({targetType} target, {property.PropertyType} newValue, {property.PropertyType} oldValue);"
+        );
+        if (!staticOnly)
+        {
+            output.WriteLine(
+                $"partial void {methodName}({property.PropertyType} newValue, {property.PropertyType} oldValue);"
+            );
+        }
+        output.WriteLine(
+            $"static partial void {methodName}({Types.DependencyObject} target, {property.PropertyType} newValue);"
+        );
+        output.WriteLine(
+            $"static partial void {methodName}({targetType} target, {property.PropertyType} newValue);"
+        );
+        if (!staticOnly)
+        {
+            output.WriteLine($"partial void {methodName}({property.PropertyType} newValue);");
+        }
+        output.WriteLine($"static partial void {methodName}({Types.DependencyObject} target);");
+        output.WriteLine($"static partial void {methodName}({targetType} target);");
+        if (!staticOnly)
+        {
+            output.WriteLine($"partial void {methodName}();");
+        }
+    }
+
+    private static void WriteOnValueChangedPotentialCalls(
+        IndentedTextWriter output,
+        string ownerType,
+        string targetType,
+        DependencyPropertyInfoBase property,
+        bool staticOnly,
+        OnValueChangedInfo vc
+    )
+    {
+        output.WriteLine($"{ownerType}.{vc.MethodName}(sender, eventArgs);");
+        output.WriteLine($"{ownerType}.{vc.MethodName}(({targetType})sender, eventArgs);");
+        if (!staticOnly)
+        {
+            output.WriteLine($"(({targetType})sender).{vc.MethodName}(eventArgs);");
+        }
+        output.WriteLine(
+            $"{ownerType}.{vc.MethodName}(sender, ({property.PropertyType})eventArgs.NewValue, ({property.PropertyType})eventArgs.OldValue);"
+        );
+        output.WriteLine(
+            $"{ownerType}.{vc.MethodName}(({targetType})sender, ({property.PropertyType})eventArgs.NewValue, ({property.PropertyType})eventArgs.OldValue);"
+        );
+        if (!staticOnly)
+        {
+            output.WriteLine(
+                $"(({targetType})sender).{vc.MethodName}(({property.PropertyType})eventArgs.NewValue, ({property.PropertyType})eventArgs.OldValue);"
+            );
+        }
+        output.WriteLine(
+            $"{ownerType}.{vc.MethodName}(sender, ({property.PropertyType})eventArgs.NewValue);"
+        );
+        output.WriteLine(
+            $"{ownerType}.{vc.MethodName}(({targetType})sender, ({property.PropertyType})eventArgs.NewValue);"
+        );
+        if (!staticOnly)
+        {
+            output.WriteLine(
+                $"(({targetType})sender).{vc.MethodName}(({property.PropertyType})eventArgs.NewValue);"
+            );
+        }
+        output.WriteLine($"{ownerType}.{vc.MethodName}(sender);");
+        output.WriteLine($"{ownerType}.{vc.MethodName}(({targetType})sender);");
+
+        if (!staticOnly)
+        {
+            output.WriteLine($"(({targetType})sender).{vc.MethodName}();");
+        }
+    }
+
+    private static void WriteAttachedSetter(
+        IndentedTextWriter output,
+        string ownerType,
+        AttachedDependencyPropertyInfo property
+    )
+    {
+        var signature =
+            $"public static partial void Set{property.Name}({property.TargetType} target, {property.PropertyType} value)";
+        output.WriteLine($"{signature};");
+        output.WriteLine(signature);
+        using (Util.WriteBlock(output))
+        {
+            output.WriteLine($"target.SetValue({ownerType}.{property.Name}Property, value);");
+        }
+    }
+
+    private static void WriteAttachedGetter(
+        IndentedTextWriter output,
+        string ownerType,
+        AttachedDependencyPropertyInfo property
+    )
+    {
+        var signature =
+            $"public static partial {property.PropertyType} Get{property.Name}({property.TargetType} target)";
+        output.WriteLine($"{signature};");
+        output.WriteLine(signature);
+        using (Util.WriteBlock(output))
+        {
+            output.WriteLine(
+                $"return ({property.PropertyType})target.GetValue({ownerType}.{property.Name}Property);"
+            );
+        }
+    }
+
     private static void WriteInstanceProperty(
-        string @this,
         IndentedTextWriter output,
         DependencyPropertyInfo property
     )
     {
         WriteModifiers(output, property.Modifiers);
-        output.WriteLine($"{property.PropertyType} {property.Name} {{");
-        output.Indent++;
-        if (property.GetterModifiers is { } get)
+        output.WriteLine($"{property.PropertyType} {property.Name} ");
+        using (Util.WriteBlock(output))
         {
-            WriteModifiers(output, get);
-            output.WriteLine(
-                $"get => ({property.PropertyType}){@this}GetValue({property.Name}Property);"
-            );
+            if (property.GetterModifiers is { } get)
+            {
+                WriteModifiers(output, get);
+                output.WriteLine(
+                    $"get => ({property.PropertyType})GetValue({property.Name}Property);"
+                );
+            }
+            if (property.SetterModifiers is { } set)
+            {
+                WriteModifiers(output, set);
+                output.WriteLine($"set => SetValue({property.Name}Property, value); ");
+            }
+            if (property.InitModifiers is { } init)
+            {
+                WriteModifiers(output, init);
+                output.WriteLine($"init => SetValue({property.Name}Property, value); ");
+            }
         }
-        if (property.SetterModifiers is { } set)
-        {
-            WriteModifiers(output, set);
-            output.WriteLine($"set => {@this}SetValue({property.Name}Property, value); ");
-        }
-        if (property.InitModifiers is { } init)
-        {
-            WriteModifiers(output, init);
-            output.WriteLine($"init => {@this}SetValue({property.Name}Property, value); ");
-        }
-        output.Indent--;
-        output.WriteLine("}");
     }
 
     private static void WriteDependencyProperty(
         IndentedTextWriter output,
+        string register,
         string ownerType,
-        DependencyPropertyInfo property
+        string targetType,
+        DependencyPropertyInfoBase property,
+        bool staticOnly
     )
     {
         output.WriteLine(
             $"public static readonly {Types.DependencyProperty} {property.Name}Property"
         );
-        output.Indent++;
-        output.WriteLine($"= {Types.DependencyProperty}.Register(");
-        output.Indent++;
-        output.WriteLine($"{SymbolDisplay.FormatLiteral(property.Name, true)},");
-        output.WriteLine($"typeof({property.PropertyType}),");
-        output.WriteLine($"typeof({ownerType}),");
-        WriteNewPropertyMetadata(output, ownerType, property);
-        output.Indent--;
-        output.WriteLine(");");
-        output.Indent--;
+        using (Util.Indent(output))
+        {
+            output.Write($"= {Types.DependencyProperty}.{register}");
+            using (Util.WriteBlock(output, "(", ");"))
+            {
+                output.WriteLine($"{SymbolDisplay.FormatLiteral(property.Name, true)},");
+                output.WriteLine($"typeof({property.PropertyType}),");
+                output.WriteLine($"typeof({ownerType}),");
+                WriteNewPropertyMetadata(output, ownerType, targetType, property, staticOnly);
+            }
+        }
     }
 
     private static void WriteNewPropertyMetadata(
         IndentedTextWriter output,
         string ownerType,
-        DependencyPropertyInfo property
+        string targetType,
+        DependencyPropertyInfoBase property,
+        bool staticOnly
     )
     {
         if (property.CreateDefaultValue is null)
         {
-            output.WriteLine($"new {Types.PropertyMetadata}(");
-            output.Indent++;
-            output.Write($"defaultValue: {property.InitialValue}");
+            output.Write($"new {Types.PropertyMetadata}");
         }
         else
         {
-            output.WriteLine($"{Types.PropertyMetadata}.Create(");
-            output.Indent++;
-            output.Write("createDefaultValueCallback: ");
-            if (property.CreateDefaultValue.ReturnsValueType)
-                output.Write($"static () => {ownerType}.{property.CreateDefaultValue.Name}()");
+            output.Write($"{Types.PropertyMetadata}.Create");
+        }
+        using (Util.WriteBlock(output, "(", ")"))
+        {
+            if (property.CreateDefaultValue is null)
+            {
+                output.Write($"defaultValue: {property.InitialValue}");
+            }
             else
-                output.Write($"{ownerType}.{property.CreateDefaultValue.Name}");
-        }
+            {
+                output.Write("createDefaultValueCallback: ");
+                if (property.CreateDefaultValue.ReturnsValueType)
+                    output.Write($"static () => {ownerType}.{property.CreateDefaultValue.Name}()");
+                else
+                    output.Write($"{ownerType}.{property.CreateDefaultValue.Name}");
+            }
 
-        if (
-            property.OnValueChanged
-            is not {
-                Signature: not (
-                    OnValueChangedSignature.NotFound
-                    or OnValueChangedSignature.Unsupported
-                )
-            } vc
-        )
-            output.WriteLine();
-        else if (vc.Signature is OnValueChangedSignature.DependencyObject_EventArgs)
-        {
-            output.WriteLine(",");
-            output.WriteLine($"propertyChangedCallback: {ownerType}.{vc.MethodName}");
-        }
-        else
-        {
-            output.WriteLine(",");
-            output.WriteLine("propertyChangedCallback: static (sender, eventArgs) => {");
-            output.Indent++;
-            switch (vc.Signature & OnValueChangedSignature.Sender)
+            if (property.OnValueChanged is not { } vc)
+                output.WriteLine();
+            else if (
+                vc.Signature
+                is OnValueChangedSignature.Unsupported
+                    or OnValueChangedSignature.NotFound
+            )
             {
-                case OnValueChangedSignature.This:
-                    output.WriteLine($"(({ownerType})sender).{vc.MethodName}(");
-                    output.Indent++;
-                    break;
-                case OnValueChangedSignature.DependencyObject:
-                    output.WriteLine($"{ownerType}.{vc.MethodName}(");
-                    output.Indent++;
-                    output.Write("sender");
-                    output.WriteLine(vc.Signature.HasFlag(OnValueChangedSignature.Only) ? "" : ",");
-                    break;
-                case OnValueChangedSignature.Owner:
-                    output.WriteLine($"{ownerType}.{vc.MethodName}(");
-                    output.Indent++;
-                    output.Write($"({ownerType})sender");
-                    output.WriteLine(vc.Signature.HasFlag(OnValueChangedSignature.Only) ? "" : ",");
-                    break;
+                output.WriteLine(",");
+                output.WriteLine("propertyChangedCallback: static (sender, eventArgs) => ");
+                using (Util.WriteBlock(output))
+                {
+                    output.WriteLine("// TODO: Implement one of the following signatures:");
+                    WriteOnValueChangedPotentialCalls(
+                        output,
+                        ownerType,
+                        targetType,
+                        property,
+                        staticOnly,
+                        vc
+                    );
+                }
             }
-            switch (vc.Signature & OnValueChangedSignature.Change)
+            else if (vc.Signature is OnValueChangedSignature.DependencyObject_EventArgs)
             {
-                case OnValueChangedSignature.EventArgs:
-                    output.WriteLine("eventArgs");
-                    output.Indent--;
-                    output.WriteLine(");");
-                    break;
-                case OnValueChangedSignature.NewOld:
-                    output.WriteLine($"({property.PropertyType})eventArgs.NewValue,");
-                    output.WriteLine($"({property.PropertyType})eventArgs.OldValue");
-                    output.Indent--;
-                    output.WriteLine(");");
-                    break;
-                case OnValueChangedSignature.New:
-                    output.WriteLine($"({property.PropertyType})eventArgs.NewValue");
-                    output.Indent--;
-                    output.WriteLine(");");
-                    break;
-                case OnValueChangedSignature.Only:
-                    output.Indent--;
-                    output.WriteLine(");");
-                    break;
+                output.WriteLine(",");
+                output.WriteLine($"propertyChangedCallback: {ownerType}.{vc.MethodName}");
             }
-            output.Indent--;
-            output.WriteLine("}");
+            else
+            {
+                output.WriteLine(",");
+                output.WriteLine("propertyChangedCallback: static (sender, eventArgs) => ");
+                using (Util.Indent(output))
+                {
+                    var sender = vc.Signature & OnValueChangedSignature.Sender;
+                    var change = vc.Signature & OnValueChangedSignature.Change;
+                    output.Write(
+                        sender switch
+                        {
+                            OnValueChangedSignature.Owner =>
+                                $"(({targetType})sender).{vc.MethodName}",
+                            _ => $"{ownerType}.{vc.MethodName}",
+                        }
+                    );
+                    using (Util.WriteBlock(output, "(", ")"))
+                    {
+                        if (sender is not OnValueChangedSignature.Owner)
+                        {
+                            if (sender is OnValueChangedSignature.DependencyObject)
+                                output.Write("sender");
+                            else if (sender is OnValueChangedSignature.Target)
+                                output.Write($"({targetType})sender");
+                            output.WriteLine(change is OnValueChangedSignature.Only ? "" : ",");
+                        }
+                        switch (change)
+                        {
+                            case OnValueChangedSignature.EventArgs:
+                                output.WriteLine("eventArgs");
+                                break;
+                            case OnValueChangedSignature.NewOld:
+                                output.WriteLine($"({property.PropertyType})eventArgs.NewValue,");
+                                output.WriteLine($"({property.PropertyType})eventArgs.OldValue");
+                                break;
+                            case OnValueChangedSignature.New:
+                                output.WriteLine($"({property.PropertyType})eventArgs.NewValue");
+                                break;
+                            case OnValueChangedSignature.Only:
+                                break;
+                        }
+                    }
+                }
+            }
         }
-        output.Indent--;
-        output.WriteLine(")");
     }
 
     private static void WriteModifiers(IndentedTextWriter output, Modifiers? modifiers)

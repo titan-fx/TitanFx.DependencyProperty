@@ -13,7 +13,8 @@ partial class MyComponent
                 defaultValue: default(int)
             )
         );
-    public partial int Id {
+    public partial int Id 
+    {
         init => SetValue(IdProperty, value); 
     }
     #endregion Id

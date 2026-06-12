@@ -87,6 +87,16 @@ public class SourceGeneratorTests
             """
     )]
     [InlineData(
+        "Missing callback",
+        """
+            public partial class MyComponent
+            {
+                [DependencyProperty(OnValueChanged = "HandleValueChanged")]
+                public partial int Id { get; set; }
+            }
+            """
+    )]
+    [InlineData(
         "Static DependencyObject EventArgs callback",
         """
             public partial class MyComponent
@@ -660,6 +670,37 @@ public class SourceGeneratorTests
                 private static string GetInitialId()
                 {
                     return "ABC";
+                }
+            }
+            """
+    )]
+    [InlineData(
+        "Attached property",
+        """
+            [AttachedDependencyProperty<FrameworkElement, bool>("IsSuccess")]
+            public partial class MyComponent;
+            """
+    )]
+    [InlineData(
+        "Attached property with OnValueChanged",
+        """
+            [AttachedDependencyProperty<FrameworkElement, bool>("IsSuccess", OnValueChanged = nameof(HandleIsSuccessChanged))]
+            public partial class MyComponent
+            {
+                private static void HandleIsSuccessChanged(FrameworkElement target, bool newValue, bool oldValue)
+                {
+                }
+            }
+            """
+    )]
+    [InlineData(
+        "Attached property ignores instance OnValueChanged",
+        """
+            [AttachedDependencyProperty<FrameworkElement, bool>("IsSuccess", OnValueChanged = nameof(HandleIsSuccessChanged))]
+            public partial class MyComponent
+            {
+                private void HandleIsSuccessChanged(FrameworkElement target, bool newValue, bool oldValue)
+                {
                 }
             }
             """

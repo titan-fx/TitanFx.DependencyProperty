@@ -8,22 +8,23 @@ internal record CreateDefaultValueInfo
     public required string Name { get; init; }
     public required bool ReturnsValueType { get; init; }
 
-    internal static CreateDefaultValueInfo Capture(
+    internal static CreateDefaultValueInfo? Capture(
         INamedTypeSymbol containingType,
-        string createDefaultValue
+        string? methodName
     )
     {
-        var method = containingType
-            .GetMembers(createDefaultValue)
-            .OfType<IMethodSymbol>()
-            .FirstOrDefault(static m =>
-                m is { IsStatic: true, Parameters: [], TypeParameters: [] }
-            );
+        if (methodName is null)
+            return null;
 
         return new()
         {
-            Name = createDefaultValue,
-            ReturnsValueType = method is { ReturnType.IsValueType: true },
+            Name = methodName,
+            ReturnsValueType = containingType
+                .GetMembers(methodName)
+                .OfType<IMethodSymbol>()
+                .Where(static m => m is { IsStatic: true, Parameters: [], TypeParameters: [] })
+                .Select(static m => m.ReturnType.IsValueType)
+                .FirstOrDefault(),
         };
     }
 }

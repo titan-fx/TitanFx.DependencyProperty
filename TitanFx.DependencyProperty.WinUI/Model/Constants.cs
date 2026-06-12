@@ -9,6 +9,9 @@ internal static class Constants
         DependencyPropertyChangedEventArgs
     );
     public const string DependencyPropertyAttribute = nameof(DependencyPropertyAttribute);
+    public const string AttachedDependencyPropertyAttribute = nameof(
+        AttachedDependencyPropertyAttribute
+    );
     public const string WinUI = nameof(WinUI);
     public const string Namespace = $"{TitanFx}.{DependencyProperty}.{WinUI}";
     public const string OnValueChanged = nameof(OnValueChanged);
@@ -37,8 +40,12 @@ internal static class Constants
         public const string NotSupportedException = "global::System.NotSupportedException";
         public const string DependencyPropertyAttribute =
             $"global::{Namespace}.{Constants.DependencyPropertyAttribute}";
+        public const string AttachedDependencyPropertyAttribute =
+            $"global::{Namespace}.{Constants.AttachedDependencyPropertyAttribute}";
 
         public const string DependencyProperty = "global::Microsoft.UI.Xaml.DependencyProperty";
+        public const string DependencyPropertyChangedEventArgs =
+            "global::Microsoft.UI.Xaml.DependencyPropertyChangedEventArgs";
         public const string DependencyObject = "global::Microsoft.UI.Xaml.DependencyObject";
         public const string PropertyMetadata = "global::Microsoft.UI.Xaml.PropertyMetadata";
     }

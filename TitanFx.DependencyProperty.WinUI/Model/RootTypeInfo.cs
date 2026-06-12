@@ -21,9 +21,7 @@ internal record RootTypeInfo
                     .Select(static x => new TypeLocalInfo
                     {
                         Name = x.Name,
-                        TypeParameters = x.TypeParameters is []
-                            ? ""
-                            : $"<{string.Join(", ", x.TypeParameters.Select(static p => p.Name))}>",
+                        TypeParameters = new(x.TypeParameters.Select(static p => p.Name)),
                         Kind = x switch
                         {
                             { TypeKind: TypeKind.Interface } => "interface",

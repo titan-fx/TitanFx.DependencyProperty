@@ -1,14 +1,9 @@
 ﻿namespace TitanFx.DependencyProperty.WinUI.Model;
 
-internal record DependencyPropertyInfo
+internal record DependencyPropertyInfo : DependencyPropertyInfoBase
 {
-    public required string Name { get; init; }
     public required Modifiers? SetterModifiers { get; init; }
     public required Modifiers? InitModifiers { get; init; }
     public required Modifiers? GetterModifiers { get; init; }
     public required Modifiers Modifiers { get; init; }
-    public required string PropertyType { get; init; }
-    public required string InitialValue { get; init; }
-    public required CreateDefaultValueInfo? CreateDefaultValue { get; init; }
-    public required OnValueChangedInfo? OnValueChanged { get; init; }
 }

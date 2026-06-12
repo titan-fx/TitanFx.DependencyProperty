@@ -12,6 +12,11 @@ internal static class ValueArray
     {
         return ValueArray<T>.CreateReverse(source);
     }
+
+    public static ValueArray<T> Create<T>(IEnumerable<T> source)
+    {
+        return new(source);
+    }
 }
 
 internal sealed class ValueArray<T> : IReadOnlyList<T>, IEquatable<ValueArray<T>>

@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 
 namespace TitanFx.DependencyProperty.WinUI.Tests;
 
+[AttachedDependencyProperty<FrameworkElement, bool>("IsSuccess")]
 internal partial class MyComponent : DependencyObject
 {
     [DependencyProperty]

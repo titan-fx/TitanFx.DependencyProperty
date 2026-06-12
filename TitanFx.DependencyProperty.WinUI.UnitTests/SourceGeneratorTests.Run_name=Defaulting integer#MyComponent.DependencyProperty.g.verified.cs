@@ -13,7 +13,8 @@ partial class MyComponent
                 defaultValue: (int)(123)
             )
         );
-    public partial int Id {
+    public partial int Id 
+    {
         get => (int)GetValue(IdProperty);
         set => SetValue(IdProperty, value); 
     }

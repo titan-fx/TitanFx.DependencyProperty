@@ -11,15 +11,15 @@ partial class MyComponent
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
                 defaultValue: default(int),
-                propertyChangedCallback: static (sender, eventArgs) => {
+                propertyChangedCallback: static (sender, eventArgs) => 
                     ((global::MyComponent)sender).HandleValueChanged(
                         (int)eventArgs.NewValue,
                         (int)eventArgs.OldValue
-                    );
-                }
+                    )
             )
         );
-    public partial int Id {
+    public partial int Id 
+    {
         get => (int)GetValue(IdProperty);
         set => SetValue(IdProperty, value); 
     }

@@ -9,37 +9,43 @@ internal record OnValueChangedInfo
     public required string MethodName { get; init; }
     public OnValueChangedSignature Signature { get; init; }
 
-    internal static OnValueChangedInfo Capture(
+    internal static OnValueChangedInfo? Capture(
         INamedTypeSymbol ownerType,
-        string onValueChangedName
+        string? methodName,
+        bool staticOnly
     )
     {
+        if (methodName is null)
+            return null;
         return new OnValueChangedInfo
         {
-            MethodName = onValueChangedName,
+            MethodName = methodName,
             Signature = ownerType
-                .GetMembers(onValueChangedName)
+                .GetMembers(methodName)
                 .OfType<IMethodSymbol>()
-                .Select(GetSignature)
+                .Select(v => GetSignature(v, staticOnly))
                 .Order()
                 .DefaultIfEmpty(OnValueChangedSignature.NotFound)
                 .FirstOrDefault(static v => v is not OnValueChangedSignature.Unsupported),
         };
     }
 
-    private static OnValueChangedSignature GetSignature(IMethodSymbol method)
+    private static OnValueChangedSignature GetSignature(IMethodSymbol method, bool staticOnly)
     {
         var parameters = method.Parameters.AsSpan();
         var sender = OnValueChangedSignature.Unsupported;
         if (!method.IsStatic)
-            sender = OnValueChangedSignature.This;
+        {
+            if (!staticOnly)
+                sender = OnValueChangedSignature.Owner;
+        }
         else if (parameters is [{ } s, .. var rest])
         {
             parameters = rest;
             if (IsDependencyObject(s.Type))
                 sender = OnValueChangedSignature.DependencyObject;
             else
-                sender = OnValueChangedSignature.Owner;
+                sender = OnValueChangedSignature.Target;
         }
 
         if (sender is OnValueChangedSignature.Unsupported)

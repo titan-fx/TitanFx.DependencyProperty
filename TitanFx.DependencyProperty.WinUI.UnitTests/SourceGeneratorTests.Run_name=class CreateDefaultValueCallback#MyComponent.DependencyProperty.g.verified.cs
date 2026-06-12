@@ -13,7 +13,8 @@ partial class MyComponent
                 createDefaultValueCallback: global::MyComponent.GetInitialId
             )
         );
-    public partial string Id {
+    public partial string Id 
+    {
         get => (string)GetValue(IdProperty);
         set => SetValue(IdProperty, value); 
     }

@@ -14,7 +14,8 @@ partial class MyComponent
                 propertyChangedCallback: global::MyComponent.HandleValueChanged
             )
         );
-    public partial int Id {
+    public partial int Id 
+    {
         get => (int)GetValue(IdProperty);
         set => SetValue(IdProperty, value); 
     }
