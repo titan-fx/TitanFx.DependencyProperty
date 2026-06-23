@@ -66,9 +66,7 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                         || ctx.TargetNode is not PropertyDeclarationSyntax node
                     )
                         return null!;
-                    var propertyType = property.Type.ToDisplayString(
-                        SymbolDisplayFormat.FullyQualifiedFormat
-                    );
+                    var propertyType = GetTypeText(property.Type);
                     var syntax = property
                         .DeclaringSyntaxReferences.Select(x => x.GetSyntax(token))
                         .OfType<PropertyDeclarationSyntax>()
@@ -109,11 +107,6 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                             ),
                             Modifiers = GetModifiers(syntax),
                             PropertyType = propertyType,
-                            InitialValue = node.Initializer switch
-                            {
-                                null => $"default({propertyType})",
-                                var v => $"({propertyType})({node.Initializer.Value})",
-                            },
                             CreateDefaultValue = CreateDefaultValueInfo.Capture(
                                 property.ContainingType,
                                 createDefaultValue
@@ -185,9 +178,7 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                                     .Select(static x => x.Value)
                                     .OfType<string>()
                                     .FirstOrDefault();
-                                var propertyType = tValue.ToDisplayString(
-                                    SymbolDisplayFormat.FullyQualifiedFormat
-                                );
+                                var propertyType = GetTypeText(tValue);
 
                                 return new WithOwner<AttachedDependencyPropertyInfo>
                                 {
@@ -196,9 +187,8 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                                     {
                                         Name = name,
                                         TargetType = tTarget.ToDisplayString(
-                                            SymbolDisplayFormat.FullyQualifiedFormat
+                                            Util.FullyQualifiedNullableFormat
                                         ),
-                                        InitialValue = $"default({propertyType})",
                                         PropertyType = propertyType,
                                         CreateDefaultValue = CreateDefaultValueInfo.Capture(
                                             owner,
@@ -230,6 +220,11 @@ internal partial record DependencyObjectInfo : RootTypeInfo
         foreach (var t in type.Path.TakeLast(1))
             _ = sb.Append($"{t.Name}{t.TypeParameters}");
         return sb.ToString();
+    }
+
+    private static string GetTypeText(ITypeSymbol type)
+    {
+        return type.ToDisplayString(Util.FullyQualifiedNullableFormat);
     }
 
     private static Modifiers GetModifiers(IReadOnlyCollection<PropertyDeclarationSyntax> property)

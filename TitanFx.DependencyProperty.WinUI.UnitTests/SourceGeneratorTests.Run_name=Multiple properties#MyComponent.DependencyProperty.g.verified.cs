@@ -7,15 +7,15 @@ partial class MyComponent
     public static readonly global::Microsoft.UI.Xaml.DependencyProperty ContentProperty
         = global::Microsoft.UI.Xaml.DependencyProperty.Register(
             "Content",
-            typeof(global::Microsoft.UI.Xaml.FrameworkElement),
+            typeof(global::Microsoft.UI.Xaml.FrameworkElement?),
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(global::Microsoft.UI.Xaml.FrameworkElement)
+                defaultValue: default(global::Microsoft.UI.Xaml.FrameworkElement?)
             )
         );
-    public partial global::Microsoft.UI.Xaml.FrameworkElement Content 
+    public partial global::Microsoft.UI.Xaml.FrameworkElement? Content 
     {
-        get => (global::Microsoft.UI.Xaml.FrameworkElement)GetValue(ContentProperty);
+        get => (global::Microsoft.UI.Xaml.FrameworkElement?)GetValue(ContentProperty);
         set => SetValue(ContentProperty, value); 
     }
     #endregion Content
@@ -26,7 +26,7 @@ partial class MyComponent
             typeof(int),
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: (int)(123)
+                defaultValue: default(int)
             )
         );
     public partial int Id 
@@ -42,7 +42,7 @@ partial class MyComponent
             typeof(string),
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: (string)("https://test.invalid/")
+                defaultValue: default(string)
             )
         );
     public partial string Source 

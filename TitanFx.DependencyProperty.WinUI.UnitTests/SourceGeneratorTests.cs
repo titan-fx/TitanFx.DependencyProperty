@@ -18,22 +18,22 @@ public class SourceGeneratorTests
             """
     )]
     [InlineData(
-        "Defaulting integer",
+        "Non nullable reference type",
         """
             public partial class MyComponent
             {
                 [DependencyProperty]
-                public partial int Id { get; set; } = 123;
+                public partial string Id { get; set; }
             }
             """
     )]
     [InlineData(
-        "Complex defaulting integer",
+        "Nullable reference type",
         """
             public partial class MyComponent
             {
                 [DependencyProperty]
-                public partial int Id { get; set; } = int.Parse("123") * 456;
+                public partial string? Id { get; set; }
             }
             """
     )]
@@ -77,10 +77,10 @@ public class SourceGeneratorTests
                 public partial FrameworkElement? Content { get; set; }
 
                 [DependencyProperty]
-                public partial int Id { get; set; } = 123;
+                public partial int Id { get; set; }
 
                 [DependencyProperty]
-                public partial string Source { get; set; } = "https://test.invalid/";
+                public partial string Source { get; set; }
 
                 public partial Guid InternalId { get; init; }
             }
@@ -645,7 +645,7 @@ public class SourceGeneratorTests
             """
     )]
     [InlineData(
-        "struct CreateDefaultValueCallback",
+        "struct CreateDefaultValueMethod",
         """
             public partial class MyComponent
             {
@@ -660,7 +660,7 @@ public class SourceGeneratorTests
             """
     )]
     [InlineData(
-        "class CreateDefaultValueCallback",
+        "class CreateDefaultValueMethod",
         """
             public partial class MyComponent
             {
@@ -671,6 +671,30 @@ public class SourceGeneratorTests
                 {
                     return "ABC";
                 }
+            }
+            """
+    )]
+    [InlineData(
+        "struct CreateDefaultValueProperty",
+        """
+            public partial class MyComponent
+            {
+                [DependencyProperty(CreateDefaultValue = nameof(InitialId))]
+                public partial int Id { get; set; }
+
+                private static int InitialId => 0;
+            }
+            """
+    )]
+    [InlineData(
+        "class CreateDefaultValueProperty",
+        """
+            public partial class MyComponent
+            {
+                [DependencyProperty(CreateDefaultValue = nameof(InitialId))]
+                public partial string Id { get; set; }
+
+                private static string InitialId => "abc";
             }
             """
     )]

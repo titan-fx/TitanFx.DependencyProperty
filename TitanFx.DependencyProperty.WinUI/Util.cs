@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CodeDom.Compiler;
+using Microsoft.CodeAnalysis;
 
 namespace TitanFx.DependencyProperty.WinUI;
 
@@ -40,4 +41,14 @@ internal static class Util
             writer.Indent--;
         }
     }
+
+    public static SymbolDisplayFormat FullyQualifiedNullableFormat { get; } =
+        new SymbolDisplayFormat(
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers
+                | SymbolDisplayMiscellaneousOptions.UseSpecialTypes
+                | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+        );
 }

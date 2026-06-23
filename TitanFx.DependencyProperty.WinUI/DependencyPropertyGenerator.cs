@@ -382,15 +382,23 @@ internal static class DependencyPropertyGenerator
         {
             if (property.CreateDefaultValue is null)
             {
-                output.Write($"defaultValue: {property.InitialValue}");
+                output.Write($"defaultValue: default({property.PropertyType})");
             }
             else
             {
                 output.Write("createDefaultValueCallback: ");
-                if (property.CreateDefaultValue.ReturnsValueType)
-                    output.Write($"static () => {ownerType}.{property.CreateDefaultValue.Name}()");
-                else
-                    output.Write($"{ownerType}.{property.CreateDefaultValue.Name}");
+                switch (property.CreateDefaultValue)
+                {
+                    case { IsMethod: false, Name: var name }:
+                        output.Write($"static () => {ownerType}.{name}");
+                        break;
+                    case { ReturnsReferenceType: false, Name: var name }:
+                        output.Write($"static () => {ownerType}.{name}()");
+                        break;
+                    case { Name: var name }:
+                        output.Write($"{ownerType}.{name}");
+                        break;
+                }
             }
 
             if (property.OnValueChanged is not { } vc)
