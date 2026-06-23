@@ -14,7 +14,7 @@ using TitanFx.DependencyProperty.WinUI;
 public partial class MyComponent : DependencyObject
 {
 	[DependencyProperty]
-	public partial string Text { get; set; } = "This is a default value";
+	public partial string Text { get; set; }
 }
 ```
 
@@ -48,7 +48,7 @@ partial class MyComponent
 			typeof(string),
 			typeof(MyComponent),
 			new PropertyMetadata(
-				defaultValue: "This is a default valu1e"
+				defaultValue: default(string)
 			)
 		);
 
@@ -69,16 +69,22 @@ static partial class MyComponentExtensions
 }
 ```
 
-### Default values
+### CreateDefaultValue
 
-[Microsoft documentation](https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/custom-dependency-properties#default-value)
+[Microsoft documentation](https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/custom-dependency-properties#createdefaultvaluecallback)
 
-Anything you assign to the property as part of the property initializer will be copied verbatim into the `defaultValue` of the registration.
-Because the registration is static, this means if you attempt to use a primary constructor value to initialize a dependency property it will fail.
+By setting the `CreateDefaultValue` property on the `[DependencyProperty]` attribute to the name of a static method, you can generate a different value for each UI thread.
 
-If you dont add an initializer to your property then the default value will be set to `default(MyPropertyType)`.
+```csharp
+public partial class MyComponent : DependencyObject
+{
 
-For `[AttachedDependencyProperty<TTarget,TValue>]` calls, the only way to set a default value is via the [CreateDefaultValue](#CreateDefaultValue) property.
+	[DependencyProperty(CreateDefaultValue = nameof(GetDefaultText)]
+	public partial string Text { get; set; }
+
+	private static string GetDefaultText() => "This value can be unique per UI thread!";
+}
+```
 
 ### PropertyChangedCallback
 
@@ -112,21 +118,3 @@ public partial class MyComponent : DependencyObject
 }
 ```
 
-### CreateDefaultValue
-
-[Microsoft documentation](https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/custom-dependency-properties#createdefaultvaluecallback)
-
-By setting the `CreateDefaultValue` property on the `[DependencyProperty]` attribute to the name of a static method, you can generate a different value for each UI thread.
-This setting takes priority over any value set by the property initializer, although when the DependencyObject is constructed, the initializer will immediately
-replace the value. Therefore if both an initializer and CreateDefaultValue are used, CreateDefaultValue will be ignored until ClearValue is called.
-
-```csharp
-public partial class MyComponent : DependencyObject
-{
-
-	[DependencyProperty(CreateDefaultValue = nameof(GetDefaultText)]
-	public partial string Text { get; set; }
-
-	private static string GetDefaultText() => "This value can be unique per UI thread!";
-}
-```
