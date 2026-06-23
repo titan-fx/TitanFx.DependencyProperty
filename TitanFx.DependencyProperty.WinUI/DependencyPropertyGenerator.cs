@@ -382,7 +382,7 @@ internal static class DependencyPropertyGenerator
         {
             if (property.CreateDefaultValue is null)
             {
-                output.Write($"defaultValue: default({property.PropertyType})");
+                output.Write($"defaultValue: {property.InitialValue}");
             }
             else
             {

@@ -10,7 +10,7 @@ partial class MyComponent
             typeof(global::Microsoft.UI.Xaml.FrameworkElement?),
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(global::Microsoft.UI.Xaml.FrameworkElement?)
+                defaultValue: default(global::Microsoft.UI.Xaml.FrameworkElement)
             )
         );
     public partial global::Microsoft.UI.Xaml.FrameworkElement? Content 

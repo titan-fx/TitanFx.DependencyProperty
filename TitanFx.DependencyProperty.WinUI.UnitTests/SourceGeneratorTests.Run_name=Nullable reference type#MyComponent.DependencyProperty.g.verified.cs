@@ -10,7 +10,7 @@ partial class MyComponent
             typeof(string?),
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(string?)
+                defaultValue: default(string)
             )
         );
     public partial string? Id 

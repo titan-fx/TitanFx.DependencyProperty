@@ -73,7 +73,8 @@ static partial class MyComponentExtensions
 
 [Microsoft documentation](https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/custom-dependency-properties#createdefaultvaluecallback)
 
-By setting the `CreateDefaultValue` property on the `[DependencyProperty]` attribute to the name of a static method, you can generate a different value for each UI thread.
+By setting the `CreateDefaultValue` property on the `[DependencyProperty]` attribute to the name of a static method or property, you can generate a different value for each UI thread.
+If you do not set a `CreateDefaultValue` then a `defaultValue: default(TProperty)` will be used instead.
 
 ```csharp
 public partial class MyComponent : DependencyObject
