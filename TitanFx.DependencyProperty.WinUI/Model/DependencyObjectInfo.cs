@@ -106,9 +106,10 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                                 SyntaxKind.GetAccessorDeclaration
                             ),
                             Modifiers = GetModifiers(syntax),
-                            PropertyType = propertyType,
-                            InitialValue =
-                                $"default({property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)})",
+                            Type = propertyType,
+                            RuntimeType = property.Type.ToDisplayString(
+                                SymbolDisplayFormat.FullyQualifiedFormat
+                            ),
                             CreateDefaultValue = CreateDefaultValueInfo.Capture(
                                 property.ContainingType,
                                 createDefaultValue
@@ -191,9 +192,10 @@ internal partial record DependencyObjectInfo : RootTypeInfo
                                         TargetType = tTarget.ToDisplayString(
                                             Util.FullyQualifiedNullableFormat
                                         ),
-                                        PropertyType = propertyType,
-                                        InitialValue =
-                                            $"default({tValue.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)})",
+                                        Type = propertyType,
+                                        RuntimeType = tValue.ToDisplayString(
+                                            SymbolDisplayFormat.FullyQualifiedFormat
+                                        ),
                                         CreateDefaultValue = CreateDefaultValueInfo.Capture(
                                             owner,
                                             createDefaultValue

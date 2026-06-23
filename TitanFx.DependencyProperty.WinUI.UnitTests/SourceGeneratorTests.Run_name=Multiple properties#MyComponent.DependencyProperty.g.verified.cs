@@ -7,7 +7,7 @@ partial class MyComponent
     public static readonly global::Microsoft.UI.Xaml.DependencyProperty ContentProperty
         = global::Microsoft.UI.Xaml.DependencyProperty.Register(
             "Content",
-            typeof(global::Microsoft.UI.Xaml.FrameworkElement?),
+            typeof(global::Microsoft.UI.Xaml.FrameworkElement),
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
                 defaultValue: default(global::Microsoft.UI.Xaml.FrameworkElement)

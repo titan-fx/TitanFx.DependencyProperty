@@ -162,7 +162,7 @@ internal static class DependencyPropertyGenerator
                 {
                     foreach (var property in group)
                     {
-                        output.WriteLine($"public {property.PropertyType} {property.Name}");
+                        output.WriteLine($"public {property.Type} {property.Name}");
                         using (Util.WriteBlock(output))
                         {
                             output.WriteLine($"get => {source.Type}.Get{property.Name}(target);");
@@ -197,26 +197,26 @@ internal static class DependencyPropertyGenerator
             );
         }
         output.WriteLine(
-            $"static partial void {methodName}({Types.DependencyObject} target, {property.PropertyType} newValue, {property.PropertyType} oldValue);"
+            $"static partial void {methodName}({Types.DependencyObject} target, {property.Type} newValue, {property.Type} oldValue);"
         );
         output.WriteLine(
-            $"static partial void {methodName}({targetType} target, {property.PropertyType} newValue, {property.PropertyType} oldValue);"
+            $"static partial void {methodName}({targetType} target, {property.Type} newValue, {property.Type} oldValue);"
         );
         if (!staticOnly)
         {
             output.WriteLine(
-                $"partial void {methodName}({property.PropertyType} newValue, {property.PropertyType} oldValue);"
+                $"partial void {methodName}({property.Type} newValue, {property.Type} oldValue);"
             );
         }
         output.WriteLine(
-            $"static partial void {methodName}({Types.DependencyObject} target, {property.PropertyType} newValue);"
+            $"static partial void {methodName}({Types.DependencyObject} target, {property.Type} newValue);"
         );
         output.WriteLine(
-            $"static partial void {methodName}({targetType} target, {property.PropertyType} newValue);"
+            $"static partial void {methodName}({targetType} target, {property.Type} newValue);"
         );
         if (!staticOnly)
         {
-            output.WriteLine($"partial void {methodName}({property.PropertyType} newValue);");
+            output.WriteLine($"partial void {methodName}({property.Type} newValue);");
         }
         output.WriteLine($"static partial void {methodName}({Types.DependencyObject} target);");
         output.WriteLine($"static partial void {methodName}({targetType} target);");
@@ -242,27 +242,27 @@ internal static class DependencyPropertyGenerator
             output.WriteLine($"(({targetType})sender).{vc.MethodName}(eventArgs);");
         }
         output.WriteLine(
-            $"{ownerType}.{vc.MethodName}(sender, ({property.PropertyType})eventArgs.NewValue, ({property.PropertyType})eventArgs.OldValue);"
+            $"{ownerType}.{vc.MethodName}(sender, ({property.Type})eventArgs.NewValue, ({property.Type})eventArgs.OldValue);"
         );
         output.WriteLine(
-            $"{ownerType}.{vc.MethodName}(({targetType})sender, ({property.PropertyType})eventArgs.NewValue, ({property.PropertyType})eventArgs.OldValue);"
+            $"{ownerType}.{vc.MethodName}(({targetType})sender, ({property.Type})eventArgs.NewValue, ({property.Type})eventArgs.OldValue);"
         );
         if (!staticOnly)
         {
             output.WriteLine(
-                $"(({targetType})sender).{vc.MethodName}(({property.PropertyType})eventArgs.NewValue, ({property.PropertyType})eventArgs.OldValue);"
+                $"(({targetType})sender).{vc.MethodName}(({property.Type})eventArgs.NewValue, ({property.Type})eventArgs.OldValue);"
             );
         }
         output.WriteLine(
-            $"{ownerType}.{vc.MethodName}(sender, ({property.PropertyType})eventArgs.NewValue);"
+            $"{ownerType}.{vc.MethodName}(sender, ({property.Type})eventArgs.NewValue);"
         );
         output.WriteLine(
-            $"{ownerType}.{vc.MethodName}(({targetType})sender, ({property.PropertyType})eventArgs.NewValue);"
+            $"{ownerType}.{vc.MethodName}(({targetType})sender, ({property.Type})eventArgs.NewValue);"
         );
         if (!staticOnly)
         {
             output.WriteLine(
-                $"(({targetType})sender).{vc.MethodName}(({property.PropertyType})eventArgs.NewValue);"
+                $"(({targetType})sender).{vc.MethodName}(({property.Type})eventArgs.NewValue);"
             );
         }
         output.WriteLine($"{ownerType}.{vc.MethodName}(sender);");
@@ -281,7 +281,7 @@ internal static class DependencyPropertyGenerator
     )
     {
         var signature =
-            $"public static partial void Set{property.Name}({property.TargetType} target, {property.PropertyType} value)";
+            $"public static partial void Set{property.Name}({property.TargetType} target, {property.Type} value)";
         output.WriteLine($"{signature};");
         output.WriteLine(signature);
         using (Util.WriteBlock(output))
@@ -297,13 +297,13 @@ internal static class DependencyPropertyGenerator
     )
     {
         var signature =
-            $"public static partial {property.PropertyType} Get{property.Name}({property.TargetType} target)";
+            $"public static partial {property.Type} Get{property.Name}({property.TargetType} target)";
         output.WriteLine($"{signature};");
         output.WriteLine(signature);
         using (Util.WriteBlock(output))
         {
             output.WriteLine(
-                $"return ({property.PropertyType})target.GetValue({ownerType}.{property.Name}Property);"
+                $"return ({property.Type})target.GetValue({ownerType}.{property.Name}Property);"
             );
         }
     }
@@ -314,15 +314,13 @@ internal static class DependencyPropertyGenerator
     )
     {
         WriteModifiers(output, property.Modifiers);
-        output.WriteLine($"{property.PropertyType} {property.Name} ");
+        output.WriteLine($"{property.Type} {property.Name} ");
         using (Util.WriteBlock(output))
         {
             if (property.GetterModifiers is { } get)
             {
                 WriteModifiers(output, get);
-                output.WriteLine(
-                    $"get => ({property.PropertyType})GetValue({property.Name}Property);"
-                );
+                output.WriteLine($"get => ({property.Type})GetValue({property.Name}Property);");
             }
             if (property.SetterModifiers is { } set)
             {
@@ -355,7 +353,7 @@ internal static class DependencyPropertyGenerator
             using (Util.WriteBlock(output, "(", ");"))
             {
                 output.WriteLine($"{SymbolDisplay.FormatLiteral(property.Name, true)},");
-                output.WriteLine($"typeof({property.PropertyType}),");
+                output.WriteLine($"typeof({property.RuntimeType}),");
                 output.WriteLine($"typeof({ownerType}),");
                 WriteNewPropertyMetadata(output, ownerType, targetType, property, staticOnly);
             }
@@ -382,7 +380,7 @@ internal static class DependencyPropertyGenerator
         {
             if (property.CreateDefaultValue is null)
             {
-                output.Write($"defaultValue: {property.InitialValue}");
+                output.Write($"defaultValue: default({property.RuntimeType})");
             }
             else
             {
@@ -461,11 +459,11 @@ internal static class DependencyPropertyGenerator
                                 output.WriteLine("eventArgs");
                                 break;
                             case OnValueChangedSignature.NewOld:
-                                output.WriteLine($"({property.PropertyType})eventArgs.NewValue,");
-                                output.WriteLine($"({property.PropertyType})eventArgs.OldValue");
+                                output.WriteLine($"({property.Type})eventArgs.NewValue,");
+                                output.WriteLine($"({property.Type})eventArgs.OldValue");
                                 break;
                             case OnValueChangedSignature.New:
-                                output.WriteLine($"({property.PropertyType})eventArgs.NewValue");
+                                output.WriteLine($"({property.Type})eventArgs.NewValue");
                                 break;
                             case OnValueChangedSignature.Only:
                                 break;

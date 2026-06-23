@@ -10,7 +10,7 @@ internal partial class MyComponent : DependencyObject
     public partial int Id { get; set; }
 
     [DependencyProperty(OnValueChanged = nameof(HandleTextChanged))]
-    public partial string Text { get; set; }
+    public partial string? Text { get; set; }
 
     private void HandleTextChanged(string newValue, string oldValue)
     {
@@ -25,5 +25,5 @@ internal partial class MyComponent : DependencyObject
     [DependencyProperty(CreateDefaultValue = nameof(InitializeHint))]
     public partial string Hint { get; set; }
 
-    private static string InitializeHint() => "abc";
+    private static string InitializeHint => "abc";
 }
