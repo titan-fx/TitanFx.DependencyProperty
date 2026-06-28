@@ -1,0 +1,13 @@
+﻿namespace TitanFx.DependencyProperty.Wpf.Model;
+
+internal abstract record DependencyPropertyInfoBase
+{
+    public required string Name { get; init; }
+    public required string Type { get; init; }
+    public required string RuntimeType { get; init; }
+    public required bool IsReferenceType { get; init; }
+    public required CreateDefaultValueInfo? CreateDefaultValue { get; init; }
+    public required OnValueChangedInfo? OnValueChanged { get; init; }
+    public required CoerceValueInfo? CoerceValue { get; init; }
+    public required ValidateValueInfo? ValidateValue { get; init; }
+}

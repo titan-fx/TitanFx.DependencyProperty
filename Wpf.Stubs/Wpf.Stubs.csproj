@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
-    <RootNamespace>Microsoft.UI.Xaml</RootNamespace>
+    <RootNamespace>System.Windows</RootNamespace>
     <NoWarn>$(NoWarn);IDE0060;CA1822</NoWarn>
   </PropertyGroup>
 </Project>

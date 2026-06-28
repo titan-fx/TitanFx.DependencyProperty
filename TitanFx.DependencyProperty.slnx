@@ -5,8 +5,16 @@
     <File Path=".gitignore" />
     <File Path="Directory.Build.props" />
   </Folder>
-  <Project Path="TitanFx.DependencyProperty.WinUI.Tests/TitanFx.DependencyProperty.WinUI.Tests.csproj" />
-  <Project Path="TitanFx.DependencyProperty.WinUI.UnitTests/TitanFx.DependencyProperty.WinUI.UnitTests.csproj" Id="790c4148-5dfd-4096-be45-4bce655ee397" />
-  <Project Path="TitanFx.DependencyProperty.WinUI/TitanFx.DependencyProperty.WinUI.csproj" />
-  <Project Path="WinUI.Stubs/WinUI.Stubs.csproj" Id="09d333d3-d190-4c10-9f93-bb84a7dbd6a4" />
+  <Folder Name="/WinUI/">
+    <Project Path="TitanFx.DependencyProperty.WinUI.Tests/TitanFx.DependencyProperty.WinUI.Tests.csproj" />
+    <Project Path="TitanFx.DependencyProperty.WinUI.UnitTests/TitanFx.DependencyProperty.WinUI.UnitTests.csproj" />
+    <Project Path="TitanFx.DependencyProperty.WinUI/TitanFx.DependencyProperty.WinUI.csproj" />
+    <Project Path="WinUI.Stubs/WinUI.Stubs.csproj" />
+  </Folder>
+  <Folder Name="/Wpf/">
+    <Project Path="TitanFx.DependencyProperty.Wpf.Tests/TitanFx.DependencyProperty.Wpf.Tests.csproj" />
+    <Project Path="TitanFx.DependencyProperty.Wpf.UnitTests/TitanFx.DependencyProperty.Wpf.UnitTests.csproj" />
+    <Project Path="TitanFx.DependencyProperty.Wpf/TitanFx.DependencyProperty.Wpf.csproj" />
+    <Project Path="Wpf.Stubs/Wpf.Stubs.csproj" />
+  </Folder>
 </Solution>

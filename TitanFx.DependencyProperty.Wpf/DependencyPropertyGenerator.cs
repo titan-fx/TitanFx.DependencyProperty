@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using TitanFx.DependencyProperty.WinUI.Model;
-using static TitanFx.DependencyProperty.WinUI.Model.Constants;
+using TitanFx.DependencyProperty.Wpf.Model;
+using static TitanFx.DependencyProperty.Wpf.Model.Constants;
 
-namespace TitanFx.DependencyProperty.WinUI;
+namespace TitanFx.DependencyProperty.Wpf;
 
 internal static class DependencyPropertyGenerator
 {
@@ -57,10 +57,12 @@ internal static class DependencyPropertyGenerator
                 source.Type,
                 property.TargetType,
                 property,
-                staticOnly
+                staticOnly,
+                property.IsReadOnly
             );
             WriteAttachedGetter(output, source.Type, property);
-            WriteAttachedSetter(output, source.Type, property);
+            if (!property.IsReadOnly)
+                WriteAttachedSetter(output, source.Type, property);
             if (
                 property.OnValueChanged is
                 {
@@ -84,6 +86,7 @@ internal static class DependencyPropertyGenerator
         staticOnly = false;
         foreach (var property in source.Properties)
         {
+            var isReadOnly = property is { SetterModifiers: null, InitModifiers: null };
             output.WriteLine($"#region {property.Name}");
             WriteDependencyProperty(
                 output,
@@ -91,9 +94,10 @@ internal static class DependencyPropertyGenerator
                 source.Type,
                 source.Type,
                 property,
-                staticOnly
+                staticOnly,
+                isReadOnly
             );
-            WriteInstanceProperty(output, property);
+            WriteInstanceProperty(output, property, isReadOnly);
             if (
                 property.OnValueChanged is
                 {
@@ -110,6 +114,26 @@ internal static class DependencyPropertyGenerator
                     onValueChanged,
                     staticOnly
                 );
+            }
+            if (
+                property.CoerceValue is
+                {
+                    Signature: CoerceValueSignature.NotFound or CoerceValueSignature.Unsupported,
+                    MethodName: var coerceValue
+                }
+            )
+            {
+                WriteCoerceCallbackPotentialSignatures(
+                    output,
+                    source.Type,
+                    property,
+                    coerceValue,
+                    staticOnly
+                );
+            }
+            if (property.ValidateValue is { Exists: false, MethodName: var validateValue })
+            {
+                WriteValidateCallbackPotentialSignatures(output, property, validateValue);
             }
             output.WriteLine($"#endregion {property.Name}");
         }
@@ -166,9 +190,12 @@ internal static class DependencyPropertyGenerator
                         using (Util.WriteBlock(output))
                         {
                             output.WriteLine($"get => {source.Type}.Get{property.Name}(target);");
-                            output.WriteLine(
-                                $"set => {source.Type}.Set{property.Name}(target, value);"
-                            );
+                            if (!property.IsReadOnly)
+                            {
+                                output.WriteLine(
+                                    $"set => {source.Type}.Set{property.Name}(target, value);"
+                                );
+                            }
                         }
                     }
                 }
@@ -272,6 +299,75 @@ internal static class DependencyPropertyGenerator
         {
             output.WriteLine($"(({targetType})sender).{vc.MethodName}();");
         }
+        output.WriteLine(
+            $"throw new {Types.NotImplementedException}(\"A callback was specified but not implemented\");"
+        );
+    }
+
+    private static void WriteCoerceCallbackPotentialSignatures(
+        IndentedTextWriter output,
+        string targetType,
+        DependencyPropertyInfoBase property,
+        string methodName,
+        bool staticOnly
+    )
+    {
+        output.WriteLine(
+            $"static partial {property.Type} {methodName}({Types.DependencyObject} target, {Types.Object}? value);"
+        );
+        output.WriteLine(
+            $"static partial {property.Type} {methodName}({targetType} target, {Types.Object}? value);"
+        );
+        if (!staticOnly)
+        {
+            output.WriteLine($"partial {property.Type} {methodName}({Types.Object}? value);");
+        }
+    }
+
+    private static void WriteCoerceCallbackPotentialCalls(
+        IndentedTextWriter output,
+        string ownerType,
+        string targetType,
+        bool staticOnly,
+        CoerceValueInfo coerce
+    )
+    {
+        output.WriteLine($"{ownerType}.{coerce.MethodName}(sender, value);");
+        output.WriteLine($"{ownerType}.{coerce.MethodName}(({targetType})sender, value);");
+        if (!staticOnly)
+        {
+            output.WriteLine($"(({targetType})sender).{coerce.MethodName}(value);");
+        }
+
+        output.WriteLine(
+            $"throw new {Types.NotImplementedException}(\"A callback was specified but not implemented\");"
+        );
+    }
+
+    private static void WriteValidateCallbackPotentialSignatures(
+        IndentedTextWriter output,
+        DependencyPropertyInfoBase property,
+        string methodName
+    )
+    {
+        output.WriteLine($"static partial {Types.Boolean} {methodName}({Types.Object}? value);");
+        output.WriteLine(
+            $"static partial {Types.Boolean} {methodName}({property.RuntimeType} value);"
+        );
+    }
+
+    private static void WriteValidateCallbackPotentialCalls(
+        IndentedTextWriter output,
+        string ownerType,
+        string targetType,
+        ValidateValueInfo validate
+    )
+    {
+        output.WriteLine($"{ownerType}.{validate.MethodName}(value);");
+        output.WriteLine($"{ownerType}.{validate.MethodName}(({targetType})value);");
+        output.WriteLine(
+            $"throw new {Types.NotImplementedException}(\"A callback was specified but not implemented\");"
+        );
     }
 
     private static void WriteAttachedSetter(
@@ -300,37 +396,43 @@ internal static class DependencyPropertyGenerator
             $"public static partial {property.Type} Get{property.Name}({property.TargetType} target)";
         output.WriteLine($"{signature};");
         output.WriteLine(signature);
+        var propertyExpr = property.IsReadOnly ? "PropertyKey.DependencyProperty" : "Property";
         using (Util.WriteBlock(output))
         {
             output.WriteLine(
-                $"return ({property.Type})target.GetValue({ownerType}.{property.Name}Property);"
+                $"return ({property.Type})target.GetValue({ownerType}.{property.Name}{propertyExpr});"
             );
         }
     }
 
     private static void WriteInstanceProperty(
         IndentedTextWriter output,
-        DependencyPropertyInfo property
+        DependencyPropertyInfo property,
+        bool readOnly
     )
     {
         WriteModifiers(output, property.Modifiers);
         output.WriteLine($"{property.Type} {property.Name} ");
         using (Util.WriteBlock(output))
         {
+            var propertyExpr = readOnly ? "PropertyKey.DependencyProperty" : "Property";
+
             if (property.GetterModifiers is { } get)
             {
                 WriteModifiers(output, get);
-                output.WriteLine($"get => ({property.Type})GetValue({property.Name}Property);");
+                output.WriteLine(
+                    $"get => ({property.Type})GetValue({property.Name}{propertyExpr});"
+                );
             }
             if (property.SetterModifiers is { } set)
             {
                 WriteModifiers(output, set);
-                output.WriteLine($"set => SetValue({property.Name}Property, value); ");
+                output.WriteLine($"set => SetValue({property.Name}{propertyExpr}, value); ");
             }
             if (property.InitModifiers is { } init)
             {
                 WriteModifiers(output, init);
-                output.WriteLine($"init => SetValue({property.Name}Property, value); ");
+                output.WriteLine($"init => SetValue({property.Name}{propertyExpr}, value); ");
             }
         }
     }
@@ -341,22 +443,63 @@ internal static class DependencyPropertyGenerator
         string ownerType,
         string targetType,
         DependencyPropertyInfoBase property,
-        bool staticOnly
+        bool staticOnly,
+        bool isReadOnly
     )
     {
-        output.WriteLine(
-            $"public static readonly {Types.DependencyProperty} {property.Name}Property"
-        );
+        if (isReadOnly)
+            output.WriteLine(
+                $"public static readonly {Types.DependencyPropertyKey} {property.Name}PropertyKey"
+            );
+        else
+            output.WriteLine(
+                $"public static readonly {Types.DependencyProperty} {property.Name}Property"
+            );
         using (Util.Indent(output))
         {
             output.Write($"= {Types.DependencyProperty}.{register}");
+            if (isReadOnly)
+                output.Write("ReadOnly");
             using (Util.WriteBlock(output, "(", ");"))
             {
                 output.WriteLine($"{SymbolDisplay.FormatLiteral(property.Name, true)},");
                 output.WriteLine($"typeof({property.RuntimeType}),");
                 output.WriteLine($"typeof({ownerType}),");
                 WriteNewPropertyMetadata(output, ownerType, targetType, property, staticOnly);
+                WriteValidateCallback(output, ownerType, targetType, property);
             }
+        }
+    }
+
+    private static void WriteValidateCallback(
+        IndentedTextWriter output,
+        string ownerType,
+        string targetType,
+        DependencyPropertyInfoBase property
+    )
+    {
+        if (property.ValidateValue is not { } validate)
+        {
+            output.WriteLine("validateValueCallback: null");
+            return;
+        }
+        if (!validate.Exists)
+        {
+            output.WriteLine($"validateValueCallback: static (value) =>");
+            using (Util.WriteBlock(output))
+            {
+                output.WriteLine("// TODO: Implement one of the following signatures:");
+                WriteValidateCallbackPotentialCalls(output, ownerType, targetType, validate);
+            }
+        }
+
+        {
+            if (validate.AcceptsObject)
+                output.WriteLine($"validateValueCallback: {targetType}.{validate.MethodName}");
+            else
+                output.WriteLine(
+                    $"validateValueCallback: static (value) => {targetType}.{validate.MethodName}(({property.RuntimeType})value)"
+                );
         }
     }
 
@@ -368,18 +511,15 @@ internal static class DependencyPropertyGenerator
         bool staticOnly
     )
     {
-        if (property.CreateDefaultValue is null)
+        output.Write($"new {Types.PropertyMetadata}");
+        using (Util.WriteBlock(output, "(", "),"))
         {
-            output.Write($"new {Types.PropertyMetadata}");
-        }
-        else
-        {
-            output.Write($"{Types.PropertyMetadata}.Create");
-        }
-        using (Util.WriteBlock(output, "(", ")"))
-        {
+            output.Write("defaultValue: ");
             WriteDefaultValue(output, ownerType, property);
+            output.Write("propertyChangedCallback: ");
             WritePropertyChangedCallback(output, ownerType, targetType, property, staticOnly);
+            output.Write("coerceValueCallback: ");
+            WriteCoerceValue(output, ownerType, targetType, property, staticOnly);
             output.WriteLine();
         }
     }
@@ -392,23 +532,14 @@ internal static class DependencyPropertyGenerator
     {
         if (property.CreateDefaultValue is null)
         {
-            output.Write($"defaultValue: default({property.RuntimeType})");
+            output.WriteLine($"default({property.RuntimeType}),");
         }
         else
         {
-            output.Write("createDefaultValueCallback: ");
-            switch (property.CreateDefaultValue)
-            {
-                case { IsMethod: false, Name: var name }:
-                    output.Write($"static () => {ownerType}.{name}");
-                    break;
-                case { ReturnsReferenceType: false, Name: var name }:
-                    output.Write($"static () => {ownerType}.{name}()");
-                    break;
-                case { Name: var name }:
-                    output.Write($"{ownerType}.{name}");
-                    break;
-            }
+            output.Write($"{ownerType}.{property.CreateDefaultValue.Name}");
+            if (property.CreateDefaultValue.IsMethod)
+                output.Write("()");
+            output.WriteLine(",");
         }
     }
 
@@ -421,13 +552,14 @@ internal static class DependencyPropertyGenerator
     )
     {
         if (property.OnValueChanged is not { } vc)
+        {
+            output.WriteLine("null,");
             return;
-
+        }
         if (vc.Signature is OnValueChangedSignature.Unsupported or OnValueChangedSignature.NotFound)
         {
-            output.WriteLine(",");
-            output.WriteLine("propertyChangedCallback: static (sender, eventArgs) => ");
-            using (Util.WriteBlock(output))
+            output.WriteLine("static (sender, eventArgs) => ");
+            using (Util.WriteBlock(output, close: "},"))
             {
                 output.WriteLine("// TODO: Implement one of the following signatures:");
                 WriteOnValueChangedPotentialCalls(
@@ -442,13 +574,11 @@ internal static class DependencyPropertyGenerator
         }
         else if (vc.Signature is OnValueChangedSignature.DependencyObject_EventArgs)
         {
-            output.WriteLine(",");
-            output.WriteLine($"propertyChangedCallback: {ownerType}.{vc.MethodName}");
+            output.WriteLine($"{ownerType}.{vc.MethodName},");
         }
         else
         {
-            output.WriteLine(",");
-            output.WriteLine("propertyChangedCallback: static (sender, eventArgs) => ");
+            output.WriteLine("static (sender, eventArgs) => ");
             using (Util.Indent(output))
             {
                 var sender = vc.Signature & OnValueChangedSignature.Sender;
@@ -460,7 +590,7 @@ internal static class DependencyPropertyGenerator
                         _ => $"{ownerType}.{vc.MethodName}",
                     }
                 );
-                using (Util.WriteBlock(output, "(", ")"))
+                using (Util.WriteBlock(output, "(", "),"))
                 {
                     if (sender is not OnValueChangedSignature.Owner)
                     {
@@ -487,6 +617,58 @@ internal static class DependencyPropertyGenerator
                     }
                 }
             }
+        }
+    }
+
+    private static void WriteCoerceValue(
+        IndentedTextWriter output,
+        string ownerType,
+        string targetType,
+        DependencyPropertyInfoBase property,
+        bool staticOnly
+    )
+    {
+        if (property.CoerceValue is not { } coerce)
+        {
+            output.WriteLine("null");
+            return;
+        }
+
+        switch (coerce.Signature)
+        {
+            case CoerceValueSignature.NotFound:
+            case CoerceValueSignature.Unsupported:
+                output.WriteLine("static (sender, value) => ");
+                using (Util.WriteBlock(output))
+                {
+                    output.WriteLine("// TODO: Implement one of the following signatures:");
+                    WriteCoerceCallbackPotentialCalls(
+                        output,
+                        ownerType,
+                        targetType,
+                        staticOnly,
+                        coerce
+                    );
+                }
+                break;
+            case CoerceValueSignature.DependencyObject when property.IsReferenceType:
+                output.WriteLine($"{ownerType}.{coerce.MethodName}");
+                break;
+            case CoerceValueSignature.DependencyObject:
+                output.WriteLine(
+                    $"static (sender, value) => {ownerType}.{coerce.MethodName}(sender, value)"
+                );
+                break;
+            case CoerceValueSignature.Target:
+                output.WriteLine(
+                    $"static (sender, value) => {ownerType}.{coerce.MethodName}(({targetType})sender, value)"
+                );
+                break;
+            case CoerceValueSignature.Owner:
+                output.WriteLine(
+                    $"static (sender, value) => (({targetType})sender).{coerce.MethodName}(value)"
+                );
+                break;
         }
     }
 

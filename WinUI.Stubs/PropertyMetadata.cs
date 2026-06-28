@@ -2,17 +2,17 @@
 
 public sealed class PropertyMetadata
 {
-    public PropertyMetadata(object? defaultValue) { }
+    public PropertyMetadata(object defaultValue) { }
 
     public PropertyMetadata(
-        object? defaultValue,
+        object defaultValue,
         DependencyPropertyChangedEventHandler propertyChangedCallback
     ) { }
 
-    public static PropertyMetadata Create(object? defaultValue) => new(defaultValue);
+    public static PropertyMetadata Create(object defaultValue) => new(defaultValue);
 
     public static PropertyMetadata Create(
-        object? defaultValue,
+        object defaultValue,
         DependencyPropertyChangedEventHandler propertyChangedCallback
     ) => new(defaultValue, propertyChangedCallback);
 
@@ -24,5 +24,3 @@ public sealed class PropertyMetadata
         DependencyPropertyChangedEventHandler propertyChangedCallback
     ) => new(null, propertyChangedCallback);
 }
-
-public delegate object? CreateDefaultValueCallback();
