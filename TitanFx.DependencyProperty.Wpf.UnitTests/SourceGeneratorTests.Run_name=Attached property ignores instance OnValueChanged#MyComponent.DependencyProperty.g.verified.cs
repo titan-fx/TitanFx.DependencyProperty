@@ -4,50 +4,54 @@
 partial class MyComponent
 {
     #region IsSuccess
-    public static readonly global::Microsoft.UI.Xaml.DependencyProperty IsSuccessProperty
-        = global::Microsoft.UI.Xaml.DependencyProperty.RegisterAttached(
+    public static readonly global::System.Windows.DependencyProperty IsSuccessProperty
+        = global::System.Windows.DependencyProperty.RegisterAttached(
             "IsSuccess",
             typeof(bool),
             typeof(global::MyComponent),
-            new global::Microsoft.UI.Xaml.PropertyMetadata(
+            new global::System.Windows.PropertyMetadata(
                 defaultValue: default(bool),
                 propertyChangedCallback: static (sender, eventArgs) => 
                 {
                     // TODO: Implement one of the following signatures:
                     global::MyComponent.HandleIsSuccessChanged(sender, eventArgs);
-                    global::MyComponent.HandleIsSuccessChanged((global::Microsoft.UI.Xaml.FrameworkElement)sender, eventArgs);
+                    global::MyComponent.HandleIsSuccessChanged((global::System.Windows.FrameworkElement)sender, eventArgs);
                     global::MyComponent.HandleIsSuccessChanged(sender, (bool)eventArgs.NewValue, (bool)eventArgs.OldValue);
-                    global::MyComponent.HandleIsSuccessChanged((global::Microsoft.UI.Xaml.FrameworkElement)sender, (bool)eventArgs.NewValue, (bool)eventArgs.OldValue);
+                    global::MyComponent.HandleIsSuccessChanged((global::System.Windows.FrameworkElement)sender, (bool)eventArgs.NewValue, (bool)eventArgs.OldValue);
                     global::MyComponent.HandleIsSuccessChanged(sender, (bool)eventArgs.NewValue);
-                    global::MyComponent.HandleIsSuccessChanged((global::Microsoft.UI.Xaml.FrameworkElement)sender, (bool)eventArgs.NewValue);
+                    global::MyComponent.HandleIsSuccessChanged((global::System.Windows.FrameworkElement)sender, (bool)eventArgs.NewValue);
                     global::MyComponent.HandleIsSuccessChanged(sender);
-                    global::MyComponent.HandleIsSuccessChanged((global::Microsoft.UI.Xaml.FrameworkElement)sender);
-                }
-            )
+                    global::MyComponent.HandleIsSuccessChanged((global::System.Windows.FrameworkElement)sender);
+                    throw new global::System.NotImplementedException("A callback was specified but not implemented");
+                },
+                coerceValueCallback: null
+                
+            ),
+            validateValueCallback: null
         );
-    public static partial bool GetIsSuccess(global::Microsoft.UI.Xaml.FrameworkElement target);
-    public static partial bool GetIsSuccess(global::Microsoft.UI.Xaml.FrameworkElement target)
+    public static partial bool GetIsSuccess(global::System.Windows.FrameworkElement target);
+    public static partial bool GetIsSuccess(global::System.Windows.FrameworkElement target)
     {
         return (bool)target.GetValue(global::MyComponent.IsSuccessProperty);
     }
-    public static partial void SetIsSuccess(global::Microsoft.UI.Xaml.FrameworkElement target, bool value);
-    public static partial void SetIsSuccess(global::Microsoft.UI.Xaml.FrameworkElement target, bool value)
+    public static partial void SetIsSuccess(global::System.Windows.FrameworkElement target, bool value);
+    public static partial void SetIsSuccess(global::System.Windows.FrameworkElement target, bool value)
     {
         target.SetValue(global::MyComponent.IsSuccessProperty, value);
     }
-    static partial void HandleIsSuccessChanged(global::Microsoft.UI.Xaml.DependencyObject target, global::Microsoft.UI.Xaml.DependencyPropertyChangedEventArgs e);
-    static partial void HandleIsSuccessChanged(global::Microsoft.UI.Xaml.FrameworkElement target, global::Microsoft.UI.Xaml.DependencyPropertyChangedEventArgs e);
-    static partial void HandleIsSuccessChanged(global::Microsoft.UI.Xaml.DependencyObject target, bool newValue, bool oldValue);
-    static partial void HandleIsSuccessChanged(global::Microsoft.UI.Xaml.FrameworkElement target, bool newValue, bool oldValue);
-    static partial void HandleIsSuccessChanged(global::Microsoft.UI.Xaml.DependencyObject target, bool newValue);
-    static partial void HandleIsSuccessChanged(global::Microsoft.UI.Xaml.FrameworkElement target, bool newValue);
-    static partial void HandleIsSuccessChanged(global::Microsoft.UI.Xaml.DependencyObject target);
-    static partial void HandleIsSuccessChanged(global::Microsoft.UI.Xaml.FrameworkElement target);
+    static partial void HandleIsSuccessChanged(global::System.Windows.DependencyObject target, global::System.Windows.DependencyPropertyChangedEventArgs e);
+    static partial void HandleIsSuccessChanged(global::System.Windows.FrameworkElement target, global::System.Windows.DependencyPropertyChangedEventArgs e);
+    static partial void HandleIsSuccessChanged(global::System.Windows.DependencyObject target, bool newValue, bool oldValue);
+    static partial void HandleIsSuccessChanged(global::System.Windows.FrameworkElement target, bool newValue, bool oldValue);
+    static partial void HandleIsSuccessChanged(global::System.Windows.DependencyObject target, bool newValue);
+    static partial void HandleIsSuccessChanged(global::System.Windows.FrameworkElement target, bool newValue);
+    static partial void HandleIsSuccessChanged(global::System.Windows.DependencyObject target);
+    static partial void HandleIsSuccessChanged(global::System.Windows.FrameworkElement target);
     #endregion IsSuccess
 }
 public static partial class MyComponent_Extensions
 {
-    extension(global::Microsoft.UI.Xaml.FrameworkElement target)
+    extension(global::System.Windows.FrameworkElement target)
     {
         public bool IsSuccess
         {

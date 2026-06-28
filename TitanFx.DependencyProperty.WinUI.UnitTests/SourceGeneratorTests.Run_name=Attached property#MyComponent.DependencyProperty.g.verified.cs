@@ -10,7 +10,8 @@ partial class MyComponent
             typeof(bool),
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(bool)
+                defaultValue: default(bool),
+                propertyChangedCallback: null
             )
         );
     public static partial bool GetIsSuccess(global::Microsoft.UI.Xaml.FrameworkElement target);

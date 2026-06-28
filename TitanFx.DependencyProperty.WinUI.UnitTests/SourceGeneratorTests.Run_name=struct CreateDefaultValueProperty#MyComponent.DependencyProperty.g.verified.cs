@@ -10,7 +10,8 @@ partial class MyComponent
             typeof(int),
             typeof(global::MyComponent),
             global::Microsoft.UI.Xaml.PropertyMetadata.Create(
-                createDefaultValueCallback: static () => global::MyComponent.InitialId
+                createDefaultValueCallback: static () => global::MyComponent.InitialId,
+                propertyChangedCallback: null
             )
         );
     public partial int Id 

@@ -10,7 +10,8 @@ partial class MyComponent
             typeof(global::Microsoft.UI.Xaml.FrameworkElement),
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(global::Microsoft.UI.Xaml.FrameworkElement)
+                defaultValue: default(global::Microsoft.UI.Xaml.FrameworkElement),
+                propertyChangedCallback: null
             )
         );
     public partial global::Microsoft.UI.Xaml.FrameworkElement? Content 
@@ -26,7 +27,8 @@ partial class MyComponent
             typeof(int),
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(int)
+                defaultValue: default(int),
+                propertyChangedCallback: null
             )
         );
     public partial int Id 
@@ -42,7 +44,8 @@ partial class MyComponent
             typeof(string),
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(string)
+                defaultValue: default(string),
+                propertyChangedCallback: null
             )
         );
     public partial string Source 

@@ -735,7 +735,7 @@ public class SourceGeneratorTests
             $"""
             using System;
             using TitanFx.DependencyProperty.Wpf;
-            using Microsoft.UI.Xaml;
+            using System.Windows;
 
             {source}
             """,

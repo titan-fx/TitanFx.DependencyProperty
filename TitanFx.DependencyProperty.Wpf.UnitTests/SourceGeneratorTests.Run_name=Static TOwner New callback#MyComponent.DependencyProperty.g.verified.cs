@@ -4,19 +4,22 @@
 partial class MyComponent
 {
     #region Id
-    public static readonly global::Microsoft.UI.Xaml.DependencyProperty IdProperty
-        = global::Microsoft.UI.Xaml.DependencyProperty.Register(
+    public static readonly global::System.Windows.DependencyProperty IdProperty
+        = global::System.Windows.DependencyProperty.Register(
             "Id",
             typeof(int),
             typeof(global::MyComponent),
-            new global::Microsoft.UI.Xaml.PropertyMetadata(
+            new global::System.Windows.PropertyMetadata(
                 defaultValue: default(int),
                 propertyChangedCallback: static (sender, eventArgs) => 
                     global::MyComponent.HandleValueChanged(
                         (global::MyComponent)sender,
                         (int)eventArgs.NewValue
-                    )
-            )
+                    ),
+                coerceValueCallback: null
+                
+            ),
+            validateValueCallback: null
         );
     public partial int Id 
     {

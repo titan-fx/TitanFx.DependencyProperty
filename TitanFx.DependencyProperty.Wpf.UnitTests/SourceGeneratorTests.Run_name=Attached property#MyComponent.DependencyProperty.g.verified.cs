@@ -4,22 +4,26 @@
 partial class MyComponent
 {
     #region IsSuccess
-    public static readonly global::Microsoft.UI.Xaml.DependencyProperty IsSuccessProperty
-        = global::Microsoft.UI.Xaml.DependencyProperty.RegisterAttached(
+    public static readonly global::System.Windows.DependencyProperty IsSuccessProperty
+        = global::System.Windows.DependencyProperty.RegisterAttached(
             "IsSuccess",
             typeof(bool),
             typeof(global::MyComponent),
-            new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(bool)
-            )
+            new global::System.Windows.PropertyMetadata(
+                defaultValue: default(bool),
+                propertyChangedCallback: null,
+                coerceValueCallback: null
+                
+            ),
+            validateValueCallback: null
         );
-    public static partial bool GetIsSuccess(global::Microsoft.UI.Xaml.FrameworkElement target);
-    public static partial bool GetIsSuccess(global::Microsoft.UI.Xaml.FrameworkElement target)
+    public static partial bool GetIsSuccess(global::System.Windows.FrameworkElement target);
+    public static partial bool GetIsSuccess(global::System.Windows.FrameworkElement target)
     {
         return (bool)target.GetValue(global::MyComponent.IsSuccessProperty);
     }
-    public static partial void SetIsSuccess(global::Microsoft.UI.Xaml.FrameworkElement target, bool value);
-    public static partial void SetIsSuccess(global::Microsoft.UI.Xaml.FrameworkElement target, bool value)
+    public static partial void SetIsSuccess(global::System.Windows.FrameworkElement target, bool value);
+    public static partial void SetIsSuccess(global::System.Windows.FrameworkElement target, bool value)
     {
         target.SetValue(global::MyComponent.IsSuccessProperty, value);
     }
@@ -27,7 +31,7 @@ partial class MyComponent
 }
 public static partial class MyComponent_Extensions
 {
-    extension(global::Microsoft.UI.Xaml.FrameworkElement target)
+    extension(global::System.Windows.FrameworkElement target)
     {
         public bool IsSuccess
         {

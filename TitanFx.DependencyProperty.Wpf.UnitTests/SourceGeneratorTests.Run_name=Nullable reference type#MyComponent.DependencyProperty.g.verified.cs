@@ -4,14 +4,18 @@
 partial class MyComponent
 {
     #region Id
-    public static readonly global::Microsoft.UI.Xaml.DependencyProperty IdProperty
-        = global::Microsoft.UI.Xaml.DependencyProperty.Register(
+    public static readonly global::System.Windows.DependencyProperty IdProperty
+        = global::System.Windows.DependencyProperty.Register(
             "Id",
             typeof(string),
             typeof(global::MyComponent),
-            new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(string)
-            )
+            new global::System.Windows.PropertyMetadata(
+                defaultValue: default(string),
+                propertyChangedCallback: null,
+                coerceValueCallback: null
+                
+            ),
+            validateValueCallback: null
         );
     public partial string? Id 
     {

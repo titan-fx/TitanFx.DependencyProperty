@@ -10,7 +10,8 @@ partial class MyComponent
             typeof(int),
             typeof(global::MyComponent),
             new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(int)
+                defaultValue: default(int),
+                propertyChangedCallback: null
             )
         );
     public partial int Id 

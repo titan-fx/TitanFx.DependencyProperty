@@ -4,30 +4,38 @@
 partial class MyComponent
 {
     #region Content
-    public static readonly global::Microsoft.UI.Xaml.DependencyProperty ContentProperty
-        = global::Microsoft.UI.Xaml.DependencyProperty.Register(
+    public static readonly global::System.Windows.DependencyProperty ContentProperty
+        = global::System.Windows.DependencyProperty.Register(
             "Content",
-            typeof(global::Microsoft.UI.Xaml.FrameworkElement),
+            typeof(global::System.Windows.FrameworkElement),
             typeof(global::MyComponent),
-            new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(global::Microsoft.UI.Xaml.FrameworkElement)
-            )
+            new global::System.Windows.PropertyMetadata(
+                defaultValue: default(global::System.Windows.FrameworkElement),
+                propertyChangedCallback: null,
+                coerceValueCallback: null
+                
+            ),
+            validateValueCallback: null
         );
-    public partial global::Microsoft.UI.Xaml.FrameworkElement? Content 
+    public partial global::System.Windows.FrameworkElement? Content 
     {
-        get => (global::Microsoft.UI.Xaml.FrameworkElement?)GetValue(ContentProperty);
+        get => (global::System.Windows.FrameworkElement?)GetValue(ContentProperty);
         set => SetValue(ContentProperty, value); 
     }
     #endregion Content
     #region Id
-    public static readonly global::Microsoft.UI.Xaml.DependencyProperty IdProperty
-        = global::Microsoft.UI.Xaml.DependencyProperty.Register(
+    public static readonly global::System.Windows.DependencyProperty IdProperty
+        = global::System.Windows.DependencyProperty.Register(
             "Id",
             typeof(int),
             typeof(global::MyComponent),
-            new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(int)
-            )
+            new global::System.Windows.PropertyMetadata(
+                defaultValue: default(int),
+                propertyChangedCallback: null,
+                coerceValueCallback: null
+                
+            ),
+            validateValueCallback: null
         );
     public partial int Id 
     {
@@ -36,14 +44,18 @@ partial class MyComponent
     }
     #endregion Id
     #region Source
-    public static readonly global::Microsoft.UI.Xaml.DependencyProperty SourceProperty
-        = global::Microsoft.UI.Xaml.DependencyProperty.Register(
+    public static readonly global::System.Windows.DependencyProperty SourceProperty
+        = global::System.Windows.DependencyProperty.Register(
             "Source",
             typeof(string),
             typeof(global::MyComponent),
-            new global::Microsoft.UI.Xaml.PropertyMetadata(
-                defaultValue: default(string)
-            )
+            new global::System.Windows.PropertyMetadata(
+                defaultValue: default(string),
+                propertyChangedCallback: null,
+                coerceValueCallback: null
+                
+            ),
+            validateValueCallback: null
         );
     public partial string Source 
     {

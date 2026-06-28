@@ -4,12 +4,12 @@
 partial class MyComponent
 {
     #region Id
-    public static readonly global::Microsoft.UI.Xaml.DependencyProperty IdProperty
-        = global::Microsoft.UI.Xaml.DependencyProperty.Register(
+    public static readonly global::System.Windows.DependencyProperty IdProperty
+        = global::System.Windows.DependencyProperty.Register(
             "Id",
             typeof(int),
             typeof(global::MyComponent),
-            new global::Microsoft.UI.Xaml.PropertyMetadata(
+            new global::System.Windows.PropertyMetadata(
                 defaultValue: default(int),
                 propertyChangedCallback: static (sender, eventArgs) => 
                 {
@@ -26,24 +26,28 @@ partial class MyComponent
                     global::MyComponent.HandleValueChanged(sender);
                     global::MyComponent.HandleValueChanged((global::MyComponent)sender);
                     ((global::MyComponent)sender).HandleValueChanged();
-                }
-            )
+                    throw new global::System.NotImplementedException("A callback was specified but not implemented");
+                },
+                coerceValueCallback: null
+                
+            ),
+            validateValueCallback: null
         );
     public partial int Id 
     {
         get => (int)GetValue(IdProperty);
         set => SetValue(IdProperty, value); 
     }
-    static partial void HandleValueChanged(global::Microsoft.UI.Xaml.DependencyObject target, global::Microsoft.UI.Xaml.DependencyPropertyChangedEventArgs e);
-    static partial void HandleValueChanged(global::MyComponent target, global::Microsoft.UI.Xaml.DependencyPropertyChangedEventArgs e);
-    partial void HandleValueChanged(global::Microsoft.UI.Xaml.DependencyPropertyChangedEventArgs e);
-    static partial void HandleValueChanged(global::Microsoft.UI.Xaml.DependencyObject target, int newValue, int oldValue);
+    static partial void HandleValueChanged(global::System.Windows.DependencyObject target, global::System.Windows.DependencyPropertyChangedEventArgs e);
+    static partial void HandleValueChanged(global::MyComponent target, global::System.Windows.DependencyPropertyChangedEventArgs e);
+    partial void HandleValueChanged(global::System.Windows.DependencyPropertyChangedEventArgs e);
+    static partial void HandleValueChanged(global::System.Windows.DependencyObject target, int newValue, int oldValue);
     static partial void HandleValueChanged(global::MyComponent target, int newValue, int oldValue);
     partial void HandleValueChanged(int newValue, int oldValue);
-    static partial void HandleValueChanged(global::Microsoft.UI.Xaml.DependencyObject target, int newValue);
+    static partial void HandleValueChanged(global::System.Windows.DependencyObject target, int newValue);
     static partial void HandleValueChanged(global::MyComponent target, int newValue);
     partial void HandleValueChanged(int newValue);
-    static partial void HandleValueChanged(global::Microsoft.UI.Xaml.DependencyObject target);
+    static partial void HandleValueChanged(global::System.Windows.DependencyObject target);
     static partial void HandleValueChanged(global::MyComponent target);
     partial void HandleValueChanged();
     #endregion Id

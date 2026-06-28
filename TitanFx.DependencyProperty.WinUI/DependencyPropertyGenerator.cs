@@ -380,7 +380,6 @@ internal static class DependencyPropertyGenerator
         {
             WriteDefaultValue(output, ownerType, property);
             WritePropertyChangedCallback(output, ownerType, targetType, property, staticOnly);
-            output.WriteLine();
         }
     }
 
@@ -392,7 +391,7 @@ internal static class DependencyPropertyGenerator
     {
         if (property.CreateDefaultValue is null)
         {
-            output.Write($"defaultValue: default({property.RuntimeType})");
+            output.WriteLine($"defaultValue: default({property.RuntimeType}),");
         }
         else
         {
@@ -400,13 +399,13 @@ internal static class DependencyPropertyGenerator
             switch (property.CreateDefaultValue)
             {
                 case { IsMethod: false, Name: var name }:
-                    output.Write($"static () => {ownerType}.{name}");
+                    output.WriteLine($"static () => {ownerType}.{name},");
                     break;
                 case { ReturnsReferenceType: false, Name: var name }:
-                    output.Write($"static () => {ownerType}.{name}()");
+                    output.WriteLine($"static () => {ownerType}.{name}(),");
                     break;
                 case { Name: var name }:
-                    output.Write($"{ownerType}.{name}");
+                    output.WriteLine($"{ownerType}.{name},");
                     break;
             }
         }
@@ -421,11 +420,13 @@ internal static class DependencyPropertyGenerator
     )
     {
         if (property.OnValueChanged is not { } vc)
+        {
+            output.WriteLine("propertyChangedCallback: null");
             return;
+        }
 
         if (vc.Signature is OnValueChangedSignature.Unsupported or OnValueChangedSignature.NotFound)
         {
-            output.WriteLine(",");
             output.WriteLine("propertyChangedCallback: static (sender, eventArgs) => ");
             using (Util.WriteBlock(output))
             {
@@ -442,12 +443,10 @@ internal static class DependencyPropertyGenerator
         }
         else if (vc.Signature is OnValueChangedSignature.DependencyObject_EventArgs)
         {
-            output.WriteLine(",");
             output.WriteLine($"propertyChangedCallback: {ownerType}.{vc.MethodName}");
         }
         else
         {
-            output.WriteLine(",");
             output.WriteLine("propertyChangedCallback: static (sender, eventArgs) => ");
             using (Util.Indent(output))
             {
