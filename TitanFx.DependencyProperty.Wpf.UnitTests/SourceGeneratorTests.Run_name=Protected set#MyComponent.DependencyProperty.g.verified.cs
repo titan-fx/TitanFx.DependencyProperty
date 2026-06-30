@@ -21,6 +21,7 @@ partial class MyComponent
     public partial int Id 
     {
         get => (int)GetValue(IdProperty);
+        protected set => SetValue(IdPropertyKey, value); 
     }
     #endregion Id
 }

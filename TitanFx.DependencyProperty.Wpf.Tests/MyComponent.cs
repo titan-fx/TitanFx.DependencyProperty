@@ -40,4 +40,10 @@ internal partial class MyComponent : DependencyObject
 
     [DependencyProperty]
     public partial int ReadOnlyInstance { get; }
+
+    [DependencyProperty]
+    public partial int PrivateSetterInstance { get; private set; }
+
+    [DependencyProperty]
+    private partial int PrivatePropertyInstance { get; set; }
 }

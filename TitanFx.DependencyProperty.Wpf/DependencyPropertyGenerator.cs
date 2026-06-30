@@ -86,7 +86,13 @@ internal static class DependencyPropertyGenerator
         staticOnly = false;
         foreach (var property in source.Properties)
         {
-            var isReadOnly = property is { SetterModifiers: null, InitModifiers: null };
+            var isReadOnly =
+                property
+                is { Modifiers.Accessibility: not "public" }
+                    or {
+                        SetterModifiers: null or { Accessibility: not (null or "public") },
+                        InitModifiers: null or { Accessibility: not (null or "public") }
+                    };
             output.WriteLine($"#region {property.Name}");
             WriteDependencyProperty(
                 output,
@@ -396,11 +402,10 @@ internal static class DependencyPropertyGenerator
             $"public static partial {property.Type} Get{property.Name}({property.TargetType} target)";
         output.WriteLine($"{signature};");
         output.WriteLine(signature);
-        var propertyExpr = property.IsReadOnly ? "PropertyKey.DependencyProperty" : "Property";
         using (Util.WriteBlock(output))
         {
             output.WriteLine(
-                $"return ({property.Type})target.GetValue({ownerType}.{property.Name}{propertyExpr});"
+                $"return ({property.Type})target.GetValue({ownerType}.{property.Name}Property);"
             );
         }
     }
@@ -408,31 +413,28 @@ internal static class DependencyPropertyGenerator
     private static void WriteInstanceProperty(
         IndentedTextWriter output,
         DependencyPropertyInfo property,
-        bool readOnly
+        bool isReadOnly
     )
     {
+        var postfix = isReadOnly ? "PropertyKey" : "Property";
         WriteModifiers(output, property.Modifiers);
         output.WriteLine($"{property.Type} {property.Name} ");
         using (Util.WriteBlock(output))
         {
-            var propertyExpr = readOnly ? "PropertyKey.DependencyProperty" : "Property";
-
             if (property.GetterModifiers is { } get)
             {
                 WriteModifiers(output, get);
-                output.WriteLine(
-                    $"get => ({property.Type})GetValue({property.Name}{propertyExpr});"
-                );
+                output.WriteLine($"get => ({property.Type})GetValue({property.Name}Property);");
             }
             if (property.SetterModifiers is { } set)
             {
                 WriteModifiers(output, set);
-                output.WriteLine($"set => SetValue({property.Name}{propertyExpr}, value); ");
+                output.WriteLine($"set => SetValue({property.Name}{postfix}, value); ");
             }
             if (property.InitModifiers is { } init)
             {
                 WriteModifiers(output, init);
-                output.WriteLine($"init => SetValue({property.Name}{propertyExpr}, value); ");
+                output.WriteLine($"init => SetValue({property.Name}{postfix}, value); ");
             }
         }
     }
@@ -447,14 +449,11 @@ internal static class DependencyPropertyGenerator
         bool isReadOnly
     )
     {
-        if (isReadOnly)
-            output.WriteLine(
-                $"public static readonly {Types.DependencyPropertyKey} {property.Name}PropertyKey"
-            );
-        else
-            output.WriteLine(
-                $"public static readonly {Types.DependencyProperty} {property.Name}Property"
-            );
+        output.WriteLine(
+            isReadOnly
+                ? $"private static readonly {Types.DependencyPropertyKey} {property.Name}PropertyKey"
+                : $"public static readonly {Types.DependencyProperty} {property.Name}Property"
+        );
         using (Util.Indent(output))
         {
             output.Write($"= {Types.DependencyProperty}.{register}");
@@ -468,6 +467,12 @@ internal static class DependencyPropertyGenerator
                 WriteNewPropertyMetadata(output, ownerType, targetType, property, staticOnly);
                 WriteValidateCallback(output, ownerType, targetType, property);
             }
+        }
+        if (isReadOnly)
+        {
+            output.WriteLine(
+                $"public static readonly {Types.DependencyProperty} {property.Name}Property = {property.Name}PropertyKey.DependencyProperty;"
+            );
         }
     }
 

@@ -68,6 +68,26 @@ public class SourceGeneratorTests
             """
     )]
     [InlineData(
+        "Private set",
+        """
+            public partial class MyComponent
+            {
+                [DependencyProperty]
+                public partial int Id { get; private set; }
+            }
+            """
+    )]
+    [InlineData(
+        "Protected set",
+        """
+            public partial class MyComponent
+            {
+                [DependencyProperty]
+                public partial int Id { get; protected set; }
+            }
+            """
+    )]
+    [InlineData(
         "Multiple properties",
         """
             [ContentProperty(Name = nameof(Content))]
